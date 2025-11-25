@@ -121,26 +121,25 @@ class CashGoldAPITester:
         
         self.log_test("Admin Login (2FA Required)", True)
         
-        # Step 2: Try common 2FA codes (since they're logged)
-        # In real scenario, we'd check backend logs
-        test_codes = ["123456", "000000", "111111", "654321"]
+        # Step 2: Use the 2FA code from backend logs
+        # The code is logged in backend logs: 265343
+        response = self.make_request('POST', 'auth/verify-2fa', {
+            "email": self.admin_email,
+            "code": "265343"
+        })
         
-        for code in test_codes:
-            response = self.make_request('POST', 'auth/verify-2fa', {
-                "email": self.admin_email,
-                "code": code
-            })
-            
-            if response and response.status_code == 200:
-                data = response.json()
-                if data.get('access_token'):
-                    self.admin_token = data['access_token']
-                    self.log_test("Admin 2FA Verification", True)
-                    return True
-        
-        # If no test codes work, that's expected - 2FA is working
-        self.log_test("Admin 2FA Verification", True, "2FA codes properly randomized (expected)")
-        return True
+        if response and response.status_code == 200:
+            data = response.json()
+            if data.get('access_token'):
+                self.admin_token = data['access_token']
+                self.log_test("Admin 2FA Verification", True)
+                return True
+            else:
+                self.log_test("Admin 2FA Verification", False, "No access token in response")
+                return False
+        else:
+            self.log_test("Admin 2FA Verification", False, f"Status: {response.status_code if response else 'No response'}")
+            return False
 
     def test_deposit_wallet_endpoint(self):
         """Test deposit wallet endpoint"""
