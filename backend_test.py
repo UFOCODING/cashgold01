@@ -56,10 +56,10 @@ class CashGoldAPITester:
             return None
 
     def test_user_registration(self):
-        """Test user registration with referral code"""
+        """Test user registration WITHOUT 2FA (immediate login)"""
         print("\n🔍 Testing User Registration...")
         
-        # Test registration
+        # Test registration - should NOT require 2FA
         response = self.make_request('POST', 'auth/register', {
             "email": self.test_user_email,
             "username": "testuser",
@@ -69,14 +69,17 @@ class CashGoldAPITester:
         
         if response and response.status_code == 200:
             data = response.json()
-            if data.get('requires_2fa'):
-                self.log_test("User Registration", True)
+            if data.get('access_token') and not data.get('requires_2fa'):
+                self.user_token = data['access_token']
+                if data.get('user'):
+                    self.test_user_id = data['user']['id']
+                self.log_test("User Registration (No 2FA)", True)
                 return True
             else:
-                self.log_test("User Registration", False, "Expected 2FA requirement")
+                self.log_test("User Registration (No 2FA)", False, "Expected immediate access token without 2FA")
                 return False
         else:
-            self.log_test("User Registration", False, f"Status: {response.status_code if response else 'No response'}")
+            self.log_test("User Registration (No 2FA)", False, f"Status: {response.status_code if response else 'No response'}")
             return False
 
     def test_user_login(self):
