@@ -125,10 +125,10 @@ class CashGoldAPITester:
         self.log_test("Admin Login (2FA Required)", True)
         
         # Step 2: Use the 2FA code from backend logs
-        # The code is logged in backend logs: 265343
+        # The latest code is logged in backend logs: 956272
         response = self.make_request('POST', 'auth/verify-2fa', {
             "email": self.admin_email,
-            "code": "265343"
+            "code": "956272"
         })
         
         if response and response.status_code == 200:
