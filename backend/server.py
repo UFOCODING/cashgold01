@@ -287,24 +287,26 @@ async def register(request: RegisterRequest):
             ref_dict['created_at'] = ref_dict['created_at'].isoformat()
             await db.referrals.insert_one(ref_dict)
     
-    # Generate 2FA code
-    two_fa_code = generate_2fa_code()
-    two_fa_expires = datetime.now(timezone.utc) + timedelta(minutes=10)
+    # Generate access token immediately (no 2FA for registration)
+    access_token = create_access_token(data={"sub": user.id})
     
-    await db.users.update_one(
-        {"id": user.id},
-        {"$set": {
-            "two_fa_enabled": True,
-            "two_fa_code": two_fa_code,
-            "two_fa_expires": two_fa_expires.isoformat()
-        }}
+    user_response = UserResponse(
+        id=user.id,
+        email=user.email,
+        username=user.username,
+        balance=user.balance,
+        invested_balance=user.invested_balance,
+        total_profits=user.total_profits,
+        vip_level=user.vip_level,
+        referral_code=user.referral_code,
+        is_admin=user.is_admin,
+        created_at=user.created_at
     )
     
-    logging.info(f"2FA Code for {request.email}: {two_fa_code}")
-    
     return TokenResponse(
-        access_token="",
-        requires_2fa=True
+        access_token=access_token,
+        requires_2fa=False,
+        user=user_response
     )
 
 @api_router.post("/auth/login", response_model=TokenResponse)
