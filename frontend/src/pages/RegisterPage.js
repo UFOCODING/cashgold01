@@ -48,9 +48,11 @@ const RegisterPage = () => {
         referral_code: formData.referral_code || null
       });
 
-      localStorage.setItem('pending_email', formData.email);
-      toast.success('Compte créé ! Code de vérification envoyé (consultez les logs)');
-      navigate('/verify-2fa');
+      // Inscription réussie - connexion immédiate
+      localStorage.setItem('token', response.data.access_token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      toast.success('Compte créé avec succès ! Bienvenue sur CashGold.');
+      navigate('/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Erreur lors de l\'inscription');
     } finally {
