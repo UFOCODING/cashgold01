@@ -172,14 +172,15 @@ class CashGoldAPITester:
         """Test creating a deposit"""
         print("\n🔍 Testing Create Deposit...")
         
-        if not self.admin_token:
-            self.log_test("Create Deposit (No Token)", False, "No admin token available")
+        # Use user token for creating deposits
+        if not self.user_token:
+            self.log_test("Create Deposit (No User Token)", False, "No user token available")
             return False
         
         response = self.make_request('POST', 'deposits', {
             "amount": 100.0,
             "tx_hash": "test_tx_hash_123"
-        }, token=self.admin_token)
+        }, token=self.user_token)
         
         if response and response.status_code == 200:
             data = response.json()
