@@ -198,14 +198,15 @@ class CashGoldAPITester:
         """Test creating a withdrawal"""
         print("\n🔍 Testing Create Withdrawal...")
         
-        if not self.admin_token:
-            self.log_test("Create Withdrawal (No Token)", False, "No admin token available")
+        # Use user token for creating withdrawals
+        if not self.user_token:
+            self.log_test("Create Withdrawal (No User Token)", False, "No user token available")
             return False
         
         response = self.make_request('POST', 'withdrawals', {
             "amount": 50.0,
             "wallet_address": "TLeCrKaPqcq3qZcdodJ8eUGJVzVbiWjMW1"
-        }, token=self.admin_token)
+        }, token=self.user_token)
         
         if response and response.status_code == 200:
             data = response.json()
