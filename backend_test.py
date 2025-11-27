@@ -148,11 +148,13 @@ class CashGoldAPITester:
         """Test deposit wallet endpoint"""
         print("\n🔍 Testing Deposit Wallet Endpoint...")
         
-        if not self.admin_token:
-            self.log_test("Deposit Wallet (No Token)", False, "No admin token available")
+        # Use user token instead of admin token for this endpoint
+        token = self.user_token or self.admin_token
+        if not token:
+            self.log_test("Deposit Wallet (No Token)", False, "No token available")
             return False
         
-        response = self.make_request('GET', 'deposits/wallet', token=self.admin_token)
+        response = self.make_request('GET', 'deposits/wallet', token=token)
         
         if response and response.status_code == 200:
             data = response.json()
