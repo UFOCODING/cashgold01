@@ -69,10 +69,12 @@ python3 /app/scripts/calculate_profits.py
    - Accès immédiat au dashboard
    - Code de parrainage optionnel
 
-2. **Connexion** - Authentification en 2 étapes
-   - Entrez email et mot de passe
-   - Recevez un code 2FA à 6 chiffres
-   - ⚠️ En mode développement: codes visibles dans `/var/log/supervisor/backend.*.log`
+2. **Connexion** 
+   - **Admin** : Connexion directe SANS 2FA (admin@cashgold.com)
+   - **Utilisateurs** : Authentification en 2 étapes avec code 2FA
+     - Entrez email et mot de passe
+     - Recevez un code 2FA à 6 chiffres
+     - ⚠️ En mode développement: codes visibles dans `/var/log/supervisor/backend.*.log`
 
 ### Dépôts
 
