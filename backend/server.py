@@ -323,7 +323,30 @@ async def login(request: LoginRequest):
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is suspended")
     
-    # Generate 2FA code
+    # Admin login without 2FA
+    if user.is_admin:
+        access_token = create_access_token(data={"sub": user.id})
+        
+        user_response = UserResponse(
+            id=user.id,
+            email=user.email,
+            username=user.username,
+            balance=user.balance,
+            invested_balance=user.invested_balance,
+            total_profits=user.total_profits,
+            vip_level=user.vip_level,
+            referral_code=user.referral_code,
+            is_admin=user.is_admin,
+            created_at=user.created_at
+        )
+        
+        return TokenResponse(
+            access_token=access_token,
+            requires_2fa=False,
+            user=user_response
+        )
+    
+    # Regular user login with 2FA
     two_fa_code = generate_2fa_code()
     two_fa_expires = datetime.now(timezone.utc) + timedelta(minutes=10)
     
