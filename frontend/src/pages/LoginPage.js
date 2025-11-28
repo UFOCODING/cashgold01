@@ -33,8 +33,15 @@ const LoginPage = () => {
       } else {
         localStorage.setItem('token', response.data.access_token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
-        toast.success('Connexion réussie !');
-        navigate('/dashboard');
+        
+        // Redirect based on user role
+        if (response.data.user.is_admin) {
+          toast.success('Connexion admin réussie !');
+          navigate('/admin');
+        } else {
+          toast.success('Connexion réussie !');
+          navigate('/dashboard');
+        }
       }
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Erreur de connexion');
