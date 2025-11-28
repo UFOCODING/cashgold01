@@ -7,8 +7,8 @@ CashGold est une plateforme d'investissement en ligne élégante avec un design 
 ## ✨ Fonctionnalités principales
 
 ### Pour les utilisateurs
-- ✅ **Inscription rapide** - Sans vérification 2FA, accès immédiat au dashboard
-- 🔐 **Connexion sécurisée** - Authentification JWT avec 2FA par email (code OTP)
+- ✅ **Inscription rapide** - Sans vérification, accès immédiat au dashboard
+- 🔐 **Connexion rapide** - Authentification JWT sans 2FA pour une connexion instantanée
 - 💰 **Dépôts USDT TRC20** - Validation manuelle par l'administrateur
 - 📈 **Plans VIP (5 niveaux)** - Tous avec rendement de 5% par jour
   - VIP 1: $10 - $99
