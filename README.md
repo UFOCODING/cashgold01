@@ -115,14 +115,6 @@ python3 /app/scripts/calculate_profits.py
 
 ## 📝 Notes importantes
 
-### Emails simulés
-En développement, les codes 2FA ne sont PAS envoyés par email mais loggés dans:
-```bash
-tail -f /var/log/supervisor/backend.*.log
-```
-
-Cherchez: `2FA Code for email@example.com: 123456`
-
 ### Calcul des profits
 Les profits sont calculés automatiquement toutes les heures si le cron est configuré.
 Formule: `profit = montant_investi * (5% / 24) * heures_écoulées`
