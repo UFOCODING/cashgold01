@@ -122,7 +122,7 @@ const HomePage = () => {
       <section className="py-20 px-4">
         <div className="container mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-16">
-            Pourquoi <span className="gold-text">CashGold</span> ?
+            {t('features.title')} <span className="gold-text">{t('features.titleGold')}</span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -132,8 +132,8 @@ const HomePage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold mb-4">Sécurité maximale</h3>
-              <p className="text-gray-400">Protection SSL, 2FA et cryptage de niveau bancaire pour vos fonds</p>
+              <h3 className="text-2xl font-bold mb-4">{t('features.security.title')}</h3>
+              <p className="text-gray-400">{t('features.security.desc')}</p>
             </div>
 
             <div className="card text-center" data-testid="feature-profits">
@@ -142,8 +142,8 @@ const HomePage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold mb-4">Profits garantis</h3>
-              <p className="text-gray-400">Recevez 5% de rendement quotidien sur tous vos investissements</p>
+              <h3 className="text-2xl font-bold mb-4">{t('features.profits.title')}</h3>
+              <p className="text-gray-400">{t('features.profits.desc')}</p>
             </div>
 
             <div className="card text-center" data-testid="feature-withdrawal">
@@ -152,8 +152,8 @@ const HomePage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold mb-4">Retraits instantanés</h3>
-              <p className="text-gray-400">Retirez vos gains à tout moment via USDT TRC20</p>
+              <h3 className="text-2xl font-bold mb-4">{t('features.withdrawal.title')}</h3>
+              <p className="text-gray-400">{t('features.withdrawal.desc')}</p>
             </div>
           </div>
         </div>
