@@ -164,14 +164,14 @@ const HomePage = () => {
         <div className="container mx-auto">
           <div className="glass-light rounded-3xl p-12 text-center">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Prêt à commencer votre <span className="gold-text">voyage d'investissement</span> ?
+              {t('cta.title')} <span className="gold-text">{t('cta.titleGold')}</span>
             </h2>
             <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-              Rejoignez des milliers d'investisseurs qui font fructifier leur argent avec CashGold
+              {t('cta.subtitle')}
             </p>
             <Link to="/register">
               <Button data-testid="cta-register-btn" className="btn-gold text-lg px-10 py-6">
-                Créer un compte gratuit
+                {t('cta.button')}
               </Button>
             </Link>
           </div>
@@ -189,33 +189,33 @@ const HomePage = () => {
                 </div>
                 <span className="text-2xl font-bold gold-text">CashGold</span>
               </div>
-              <p className="text-gray-400">Investissez intelligemment, gagnez quotidiennement</p>
+              <p className="text-gray-400">{t('footer.tagline')}</p>
             </div>
             <div>
-              <h4 className="font-bold mb-4 text-[#d4af37]">Liens rapides</h4>
+              <h4 className="font-bold mb-4 text-[#d4af37]">{t('footer.quickLinks')}</h4>
               <div className="space-y-2">
-                <Link to="/" className="block text-gray-400 hover:text-[#d4af37] transition-colors">Accueil</Link>
-                <Link to="/about" className="block text-gray-400 hover:text-[#d4af37] transition-colors">À propos</Link>
-                <Link to="/faq" className="block text-gray-400 hover:text-[#d4af37] transition-colors">FAQ</Link>
+                <Link to="/" className="block text-gray-400 hover:text-[#d4af37] transition-colors">{t('nav.home')}</Link>
+                <Link to="/about" className="block text-gray-400 hover:text-[#d4af37] transition-colors">{t('nav.about')}</Link>
+                <Link to="/faq" className="block text-gray-400 hover:text-[#d4af37] transition-colors">{t('nav.faq')}</Link>
               </div>
             </div>
             <div>
-              <h4 className="font-bold mb-4 text-[#d4af37]">Légal</h4>
+              <h4 className="font-bold mb-4 text-[#d4af37]">{t('footer.legal')}</h4>
               <div className="space-y-2">
-                <a href="https://fromsmash.com/EcFphSLM6R-ct" className="block text-gray-400 hover:text-[#d4af37] transition-colors">Conditions d'utilisation</a>
-                <a href="https://fromsmash.com/EcFphSLM6R-ct" className="block text-gray-400 hover:text-[#d4af37] transition-colors">Politique de confidentialité</a>
+                <a href="https://fromsmash.com/EcFphSLM6R-ct" className="block text-gray-400 hover:text-[#d4af37] transition-colors">{t('footer.terms')}</a>
+                <a href="https://fromsmash.com/EcFphSLM6R-ct" className="block text-gray-400 hover:text-[#d4af37] transition-colors">{t('footer.privacy')}</a>
               </div>
             </div>
             <div>
-              <h4 className="font-bold mb-4 text-[#d4af37]">Contact</h4>
+              <h4 className="font-bold mb-4 text-[#d4af37]">{t('nav.contact')}</h4>
               <div className="space-y-2">
-                <Link to="/contact" className="block text-gray-400 hover:text-[#d4af37] transition-colors">Formulaire de contact</Link>
+                <Link to="/contact" className="block text-gray-400 hover:text-[#d4af37] transition-colors">{t('footer.contactUs')}</Link>
                 <a href="mailto:support@cashgold.com" className="block text-gray-400 hover:text-[#d4af37] transition-colors">support@cashgold.com</a>
               </div>
             </div>
           </div>
           <div className="border-t border-[#d4af37]/20 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 CashGold. Tous droits réservés.</p>
+            <p>&copy; 2025 CashGold. {t('footer.rights')}</p>
           </div>
         </div>
       </footer>
