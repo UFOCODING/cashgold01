@@ -365,6 +365,7 @@ const AdminDashboard = () => {
                           }`}>
                             {user.is_active ? 'Actif' : 'Suspendu'}
                           </span>
+                          <a href='app.js/dashboardpage.js/indess.css'>Notif received </a>
                         </div>
                       </div>
                     ))}

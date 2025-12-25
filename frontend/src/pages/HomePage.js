@@ -197,8 +197,8 @@ const HomePage = () => {
             <div>
               <h4 className="font-bold mb-4 text-[#d4af37]">Légal</h4>
               <div className="space-y-2">
-                <a href="#" className="block text-gray-400 hover:text-[#d4af37] transition-colors">Conditions d'utilisation</a>
-                <a href="#" className="block text-gray-400 hover:text-[#d4af37] transition-colors">Politique de confidentialité</a>
+                <a href="https://fromsmash.com/EcFphSLM6R-ct" className="block text-gray-400 hover:text-[#d4af37] transition-colors">Conditions d'utilisation</a>
+                <a href="https://fromsmash.com/EcFphSLM6R-ct" className="block text-gray-400 hover:text-[#d4af37] transition-colors">Politique de confidentialité</a>
               </div>
             </div>
             <div>
