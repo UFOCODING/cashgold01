@@ -89,9 +89,9 @@ const HomePage = () => {
       <section className="py-20 px-4 bg-gradient-to-b from-black to-[#0a0a0a]">
         <div className="container mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-4">
-            Niveaux <span className="gold-text">VIP</span>
+            {t('vip.title')} <span className="gold-text">{t('vip.titleGold')}</span>
           </h2>
-          <p className="text-center text-gray-400 mb-16 text-lg">Choisissez votre niveau d'investissement</p>
+          <p className="text-center text-gray-400 mb-16 text-lg">{t('vip.subtitle')}</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             {[
@@ -110,7 +110,7 @@ const HomePage = () => {
                   <div className="gold-text text-2xl font-bold mb-4">{vip.level}</div>
                   <div className="text-gray-300 mb-2">{vip.min} - {vip.max}</div>
                   <div className="text-3xl font-bold text-white mt-4">5%</div>
-                  <div className="text-gray-400 text-sm">par jour</div>
+                  <div className="text-gray-400 text-sm">{t('vip.perDay')}</div>
                 </div>
               </div>
             ))}
