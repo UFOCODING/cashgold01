@@ -2,8 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
+import { useLanguage } from '../i18n/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 
 const HomePage = () => {
+  const { t } = useLanguage();
+  
   return (
     <div className="min-h-screen bg-black">
       {/* Navigation */}
@@ -16,20 +20,21 @@ const HomePage = () => {
             <span className="text-2xl font-bold gold-text">CashGold</span>
           </Link>
           <div className="hidden md:flex space-x-8">
-            <Link to="/" className="text-gray-300 hover:text-[#d4af37] transition-colors">Accueil</Link>
-            <Link to="/about" className="text-gray-300 hover:text-[#d4af37] transition-colors">À propos</Link>
-            <Link to="/faq" className="text-gray-300 hover:text-[#d4af37] transition-colors">FAQ</Link>
-            <Link to="/contact" className="text-gray-300 hover:text-[#d4af37] transition-colors">Contact</Link>
+            <Link to="/" className="text-gray-300 hover:text-[#d4af37] transition-colors">{t('nav.home')}</Link>
+            <Link to="/about" className="text-gray-300 hover:text-[#d4af37] transition-colors">{t('nav.about')}</Link>
+            <Link to="/faq" className="text-gray-300 hover:text-[#d4af37] transition-colors">{t('nav.faq')}</Link>
+            <Link to="/contact" className="text-gray-300 hover:text-[#d4af37] transition-colors">{t('nav.contact')}</Link>
           </div>
-          <div className="flex space-x-4">
+          <div className="flex space-x-3 items-center">
+            <LanguageSelector />
             <Link to="/login">
               <Button data-testid="login-btn" variant="outline" className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black">
-                Connexion
+                {t('nav.login')}
               </Button>
             </Link>
             <Link to="/register">
               <Button data-testid="register-btn" className="btn-gold">
-                Inscription
+                {t('nav.register')}
               </Button>
             </Link>
           </div>
