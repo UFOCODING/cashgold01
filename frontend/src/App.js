@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import '@/App.css';
+import { LanguageProvider } from './i18n/LanguageContext';
 
 // Pages
 import HomePage from './pages/HomePage';
