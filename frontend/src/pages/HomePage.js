@@ -46,22 +46,22 @@ const HomePage = () => {
         <div className="container mx-auto text-center">
           <div className="fade-in">
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              Investissez dans votre
+              {t('hero.title')}
               <br />
-              <span className="gold-text">Avenir Doré</span>
+              <span className="gold-text">{t('hero.titleGold')}</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto">
-              Plateforme d'investissement en ligne sécurisée avec des rendements quotidiens garantis de 5%
+              {t('hero.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
               <Link to="/register">
                 <Button data-testid="hero-start-btn" className="btn-gold text-lg px-8 py-6">
-                  Commencer à investir
+                  {t('hero.startInvesting')}
                 </Button>
               </Link>
               <Link to="/about">
                 <Button data-testid="hero-learn-btn" variant="outline" className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black text-lg px-8 py-6">
-                  En savoir plus
+                  {t('hero.learnMore')}
                 </Button>
               </Link>
             </div>
@@ -71,15 +71,15 @@ const HomePage = () => {
           <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="glass-light rounded-2xl p-8 hover:border-[#d4af37] border transition-all">
               <div className="text-4xl font-bold gold-text mb-2">5%</div>
-              <div className="text-gray-400">Rendement quotidien</div>
+              <div className="text-gray-400">{t('hero.dailyReturn')}</div>
             </div>
             <div className="glass-light rounded-2xl p-8 hover:border-[#d4af37] border transition-all">
               <div className="text-4xl font-bold gold-text mb-2">$10</div>
-              <div className="text-gray-400">Investissement minimum</div>
+              <div className="text-gray-400">{t('hero.minInvestment')}</div>
             </div>
             <div className="glass-light rounded-2xl p-8 hover:border-[#d4af37] border transition-all">
               <div className="text-4xl font-bold gold-text mb-2">24/7</div>
-              <div className="text-gray-400">Support client</div>
+              <div className="text-gray-400">{t('hero.support')}</div>
             </div>
           </div>
         </div>
