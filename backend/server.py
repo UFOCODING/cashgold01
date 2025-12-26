@@ -263,12 +263,13 @@ async def register(request: RegisterRequest):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Create user
+    # Create user with registration bonus
     user = User(
         email=request.email,
         username=request.username,
         password_hash=hash_password(request.password),
-        referred_by=request.referral_code
+        referred_by=request.referral_code,
+        balance=6.0  # Registration bonus
     )
     
     user_dict = user.model_dump()
