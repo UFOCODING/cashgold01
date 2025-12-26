@@ -51,7 +51,7 @@ const RegisterPage = () => {
       // Inscription réussie - connexion immédiate
       localStorage.setItem('token', response.data.access_token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      toast.success('Compte créé avec succès ! Bienvenue sur CashGold.');
+      toast.success('🎉 Compte créé avec succès ! Bonus de 6$ offert ! Bienvenue sur CashGold.');
       navigate('/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Erreur lors de l\'inscription');
