@@ -266,12 +266,24 @@ const AdminDashboard = () => {
                       return (
                         <div key={wtd.id} data-testid={`admin-withdrawal-${wtd.id}`} className="glass-light rounded-xl p-4">
                           <div className="flex justify-between items-start mb-3">
-                            <div>
+                            <div className="flex-1">
                               <p className="font-bold text-lg">${wtd.amount.toFixed(2)}</p>
                               <p className="text-sm text-gray-400">Utilisateur: {user?.username || 'N/A'}</p>
                               <p className="text-xs text-gray-500">{user?.email || 'N/A'}</p>
                               <p className="text-xs text-gray-500">{new Date(wtd.created_at).toLocaleString()}</p>
-                              <p className="text-xs text-gray-500 mt-1">Wallet: {wtd.wallet_address}</p>
+                              <div className="mt-2 flex items-center space-x-2">
+                                <p className="text-sm font-semibold text-[#d4af37]">Adresse de retrait:</p>
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(wtd.wallet_address);
+                                    toast.success('Adresse copiée !');
+                                  }}
+                                  className="text-xs bg-[#d4af37]/20 hover:bg-[#d4af37]/30 px-2 py-1 rounded transition-colors"
+                                >
+                                  📋 Copier
+                                </button>
+                              </div>
+                              <p className="text-xs text-white bg-black/50 p-2 rounded mt-1 font-mono break-all">{wtd.wallet_address}</p>
                             </div>
                             <span className={`px-3 py-1 rounded-full text-sm ${
                               wtd.status === 'completed' ? 'bg-green-500/20 text-green-400' :
