@@ -77,6 +77,7 @@ function App() {
               }
             />
           </Routes>
+          <AIChatbot />
         </BrowserRouter>
       </div>
     </LanguageProvider>
