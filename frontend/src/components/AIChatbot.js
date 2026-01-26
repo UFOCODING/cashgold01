@@ -32,49 +32,12 @@ const AIChatbot = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('https://api.emergentmethods.ai/v1/chat/completions', {
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `Tu es un assistant service client pour CashGold, une plateforme d'investissement en ligne. 
-
-Informations importantes sur CashGold:
-- Rendement: 5% par jour sur tous les investissements
-- Investissement minimum: 10$
-- Bonus d'inscription: 6$ offerts automatiquement
-- Méthodes de dépôt: USDT TRC20 uniquement
-- Adresse de dépôt USDT TRC20: TLeCrKaPqcq3qZcdodJ8eUGJVzVbiWjMW1
-- Retrait minimum: 10$
-- 5 niveaux VIP (VIP 1: $10-$99, VIP 2: $100-$499, VIP 3: $500-$999, VIP 4: $1000-$4999, VIP 5: $5000+)
-- Programme de parrainage: 5% de bonus sur les dépôts des filleuls
-- Validation des dépôts: Manuelle par l'administrateur
-- Support disponible 24/7
-- Pas de 2FA pour l'inscription (connexion rapide)
-- Connexion avec email et mot de passe uniquement
-- Plateforme disponible en 6 langues: Français, English, Español, العربية, 中文, Deutsch
-
-Ton rôle:
-- Réponds de manière amicale, professionnelle et concise
-- Aide avec les questions sur les dépôts, retraits, investissements, VIP, parrainage
-- Fournis des informations claires et précises
-- Si tu ne sais pas, dirige vers support@cashgold.com
-- Réponds dans la langue de l'utilisateur
-- Sois rassurant sur la sécurité de la plateforme`
-          },
-          ...messages.map(m => ({ role: m.role, content: m.content })),
-          { role: 'user', content: userMessage }
-        ],
-        temperature: 0.7,
-        max_tokens: 500
-      }, {
-        headers: {
-          'Authorization': `Bearer sk-emergent-0AdAaE61fFc5dD2Fc1`,
-          'Content-Type': 'application/json'
-        }
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/chatbot`, {
+        message: userMessage,
+        session_id: 'user-' + Date.now()
       });
 
-      const aiResponse = response.data.choices[0].message.content;
+      const aiResponse = response.data.response;
       setMessages(prev => [...prev, { role: 'assistant', content: aiResponse }]);
     } catch (error) {
       console.error('Chatbot error:', error);
