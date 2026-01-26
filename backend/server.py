@@ -754,6 +754,61 @@ async def calculate_profits(background_tasks: BackgroundTasks):
     background_tasks.add_task(calculate_and_update_profits)
     return {"message": "Profit calculation started"}
 
+# ==================== CHATBOT AI ====================
+
+from emergentintegrations.llm.chat import LlmChat, UserMessage
+
+@api_router.post("/chatbot")
+async def chatbot_endpoint(request: dict):
+    user_message = request.get('message', '')
+    session_id = request.get('session_id', 'default')
+    
+    if not user_message:
+        raise HTTPException(status_code=400, detail="Message is required")
+    
+    try:
+        # Initialize LLM chat with Emergent key
+        chat = LlmChat(
+            api_key=os.environ.get('EMERGENT_LLM_KEY', 'sk-emergent-0AdAaE61fFc5dD2Fc1'),
+            session_id=session_id,
+            system_message="""Tu es un assistant service client pour CashGold, une plateforme d'investissement en ligne. 
+
+Informations importantes sur CashGold:
+- Rendement: 5% par jour sur tous les investissements
+- Investissement minimum: 10$
+- Bonus d'inscription: 6$ offerts automatiquement
+- Méthodes de dépôt: USDT TRC20 uniquement
+- Adresse de dépôt USDT TRC20: TLeCrKaPqcq3qZcdodJ8eUGJVzVbiWjMW1
+- Retrait minimum: 10$
+- 5 niveaux VIP (VIP 1: $10-$99, VIP 2: $100-$499, VIP 3: $500-$999, VIP 4: $1000-$4999, VIP 5: $5000+)
+- Programme de parrainage: 5% de bonus sur les dépôts des filleuls
+- Validation des dépôts: Manuelle par l'administrateur
+- Support disponible 24/7
+- Connexion rapide sans 2FA
+- Plateforme disponible en 6 langues: Français, English, Español, العربية, 中文, Deutsch
+
+Ton rôle:
+- Réponds de manière amicale, professionnelle et concise (maximum 3-4 phrases)
+- Aide avec les questions sur les dépôts, retraits, investissements, VIP, parrainage
+- Fournis des informations claires et précises
+- Si tu ne sais pas, dirige vers support@cashgold.com
+- Réponds dans la langue de l'utilisateur
+- Sois rassurant sur la sécurité de la plateforme
+- Utilise des émojis pour rendre la conversation plus conviviale"""
+        ).with_model("openai", "gpt-4o-mini")
+        
+        # Create user message
+        message = UserMessage(text=user_message)
+        
+        # Get response
+        response = await chat.send_message(message)
+        
+        return {"response": response}
+        
+    except Exception as e:
+        logging.error(f"Chatbot error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Une erreur s'est produite. Contactez support@cashgold.com")
+
 # Include the router in the main app
 app.include_router(api_router)
 
