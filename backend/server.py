@@ -498,12 +498,28 @@ async def get_my_deposits(current_user: User = Depends(get_current_user)):
 async def create_withdrawal(request: WithdrawalRequest, current_user: User = Depends(get_current_user)):
     settings_doc = await db.settings.find_one({"id": "global_settings"})
     min_withdrawal = settings_doc.get("min_withdrawal", 10.0) if settings_doc else 10.0
+    max_daily_withdrawal = settings_doc.get("max_daily_withdrawal_amount", 10000.0) if settings_doc else 10000.0
     
     if request.amount < min_withdrawal:
         raise HTTPException(status_code=400, detail=f"Minimum withdrawal is ${min_withdrawal}")
     
     if current_user.balance < request.amount:
         raise HTTPException(status_code=400, detail="Insufficient balance")
+    
+    # Check daily withdrawal limit
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    today_withdrawals = await db.withdrawals.find({
+        "user_id": current_user.id,
+        "created_at": {"$gte": today_start.isoformat()},
+        "status": {"$in": ["pending", "processing", "completed"]}
+    }).to_list(None)
+    
+    total_today = sum(w.get('amount', 0) for w in today_withdrawals)
+    if total_today + request.amount > max_daily_withdrawal:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Daily withdrawal limit exceeded. Limit: ${max_daily_withdrawal}, Already withdrawn today: ${total_today}"
+        )
     
     withdrawal = Withdrawal(
         user_id=current_user.id,
@@ -521,7 +537,11 @@ async def create_withdrawal(request: WithdrawalRequest, current_user: User = Dep
         {"$inc": {"balance": -request.amount}}
     )
     
-    return {"message": "Withdrawal request submitted", "withdrawal_id": withdrawal.id}
+    return {
+        "message": "Withdrawal request submitted. Processing time: 30 minutes to 24 hours", 
+        "withdrawal_id": withdrawal.id,
+        "estimated_time": "30 minutes - 24 hours"
+    }
 
 @api_router.get("/withdrawals/my")
 async def get_my_withdrawals(current_user: User = Depends(get_current_user)):
