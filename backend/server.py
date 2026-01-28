@@ -748,9 +748,35 @@ async def get_profit_summary(current_user: User = Depends(get_current_user)):
 @api_router.get("/admin/deposits")
 async def admin_get_deposits(current_user: User = Depends(get_admin_user)):
     deposits = await db.deposits.find({}, {"_id": 0}).to_list(None)
+    now = datetime.now(timezone.utc)
+    
+    settings_doc = await db.settings.find_one({"id": "global_settings"})
+    max_delay = settings_doc.get("deposit_delay_hours", 12) if settings_doc else 12
+    
     for dep in deposits:
         if isinstance(dep.get('created_at'), str):
             dep['created_at'] = datetime.fromisoformat(dep['created_at'])
+        
+        # Calculate hours since creation
+        hours_since = (now - dep['created_at']).total_seconds() / 3600
+        dep['hours_since_creation'] = round(hours_since, 1)
+        
+        # Check if expired (more than 12h old and still pending)
+        if dep.get('status') == 'pending' and hours_since > max_delay:
+            dep['expired'] = True
+            # Auto-reject expired deposits
+            await db.deposits.update_one(
+                {"id": dep['id']},
+                {"$set": {
+                    "status": "expired",
+                    "processed_at": now.isoformat(),
+                    "processed_by": "system_auto_expire"
+                }}
+            )
+            dep['status'] = 'expired'
+        else:
+            dep['expired'] = False
+    
     return deposits
 
 @api_router.post("/admin/deposits/{deposit_id}/approve")
