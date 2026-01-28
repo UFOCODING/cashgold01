@@ -95,6 +95,15 @@ class Investment(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     last_profit_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class ProfitHistory(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    investment_id: str
+    amount: float
+    profit_date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    balance_after: float
+
 class Referral(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
