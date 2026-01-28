@@ -610,23 +610,66 @@ async def stop_investment(investment_id: str, current_user: User = Depends(get_c
     if not investment_doc['is_active']:
         raise HTTPException(status_code=400, detail="Investment already stopped")
     
-    # Calculate final profit before stopping
-    await calculate_and_update_profits()
+    # Calculate any remaining profit before stopping
+    now = datetime.now(timezone.utc)
+    last_profit = investment_doc['last_profit_time']
+    if isinstance(last_profit, str):
+        last_profit = datetime.fromisoformat(last_profit)
     
-    # Return principal to balance
+    time_diff = now - last_profit
+    days_passed = time_diff.total_seconds() / 86400
+    
+    remaining_profit = 0.0
+    if days_passed > 0:
+        # Calculate any accumulated profit since last distribution
+        daily_rate = investment_doc['daily_return_rate'] / 100
+        remaining_profit = investment_doc['amount'] * daily_rate * days_passed
+    
+    # Get investment capital
+    capital = investment_doc['amount']
+    
+    # Total amount to return = capital + remaining profit
+    total_return = capital + remaining_profit
+    
+    # Mark investment as inactive
     await db.investments.update_one(
         {"id": investment_id},
         {"$set": {"is_active": False}}
     )
     
+    # Return capital + profit to available balance
     await db.users.update_one(
         {"id": current_user.id},
         {
-            "$inc": {"balance": investment_doc['amount'], "invested_balance": -investment_doc['amount']}
+            "$inc": {
+                "balance": total_return,
+                "invested_balance": -capital,
+                "total_profits": remaining_profit
+            }
         }
     )
     
-    return {"message": "Investment stopped and principal returned to balance"}
+    # Create profit history if there's remaining profit
+    if remaining_profit > 0:
+        user_doc = await db.users.find_one({"id": current_user.id})
+        profit_history = ProfitHistory(
+            user_id=current_user.id,
+            investment_id=investment_id,
+            amount=remaining_profit,
+            profit_date=now,
+            balance_after=user_doc['balance'] + total_return
+        )
+        
+        history_dict = profit_history.model_dump()
+        history_dict['profit_date'] = history_dict['profit_date'].isoformat()
+        await db.profit_history.insert_one(history_dict)
+    
+    return {
+        "message": "Investment stopped successfully",
+        "capital_returned": capital,
+        "profit_returned": remaining_profit,
+        "total_returned": total_return
+    }
 
 # ==================== REFERRAL ROUTES ====================
 
