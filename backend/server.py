@@ -762,7 +762,7 @@ async def admin_approve_deposit(deposit_id: str, current_user: User = Depends(ge
     if deposit_doc['status'] != 'pending':
         raise HTTPException(status_code=400, detail="Deposit already processed")
     
-    # Check if 12-hour delay has passed
+    # Check if deposit is within the 12-hour validation window
     created_at = deposit_doc['created_at']
     if isinstance(created_at, str):
         created_at = datetime.fromisoformat(created_at)
@@ -771,13 +771,13 @@ async def admin_approve_deposit(deposit_id: str, current_user: User = Depends(ge
     hours_since_creation = (now - created_at).total_seconds() / 3600
     
     settings_doc = await db.settings.find_one({"id": "global_settings"})
-    required_delay = settings_doc.get("deposit_delay_hours", 12) if settings_doc else 12
+    max_delay = settings_doc.get("deposit_delay_hours", 12) if settings_doc else 12
     
-    if hours_since_creation < required_delay:
-        remaining_hours = required_delay - hours_since_creation
+    # Admin must validate within 12 hours (can't wait more than 12h)
+    if hours_since_creation > max_delay:
         raise HTTPException(
             status_code=400, 
-            detail=f"Deposit can only be approved after {required_delay} hours. Remaining time: {remaining_hours:.1f} hours"
+            detail=f"Deposit validation period expired. Maximum delay is {max_delay} hours. This deposit is {hours_since_creation:.1f} hours old."
         )
     
     # Update deposit status
