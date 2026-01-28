@@ -648,6 +648,58 @@ async def get_my_referrals(current_user: User = Depends(get_current_user)):
     
     return result
 
+# ==================== PROFIT HISTORY ROUTES ====================
+
+@api_router.get("/profits/history")
+async def get_profit_history(current_user: User = Depends(get_current_user)):
+    """Get user's profit history"""
+    profits = await db.profit_history.find(
+        {"user_id": current_user.id}, 
+        {"_id": 0}
+    ).sort("profit_date", -1).limit(100).to_list(None)
+    
+    for profit in profits:
+        if isinstance(profit.get('profit_date'), str):
+            profit['profit_date'] = datetime.fromisoformat(profit['profit_date'])
+    
+    return profits
+
+@api_router.get("/profits/summary")
+async def get_profit_summary(current_user: User = Depends(get_current_user)):
+    """Get user's profit summary statistics"""
+    # Get all profits for the user
+    all_profits = await db.profit_history.find({"user_id": current_user.id}).to_list(None)
+    
+    # Calculate statistics
+    total_profit = sum(p.get('amount', 0) for p in all_profits)
+    profit_count = len(all_profits)
+    
+    # Get profits for this month
+    now = datetime.now(timezone.utc)
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    month_profits = [p for p in all_profits if datetime.fromisoformat(p['profit_date']) >= month_start]
+    monthly_profit = sum(p.get('amount', 0) for p in month_profits)
+    
+    # Get profits for this week
+    week_start = now - timedelta(days=now.weekday())
+    week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
+    week_profits = [p for p in all_profits if datetime.fromisoformat(p['profit_date']) >= week_start]
+    weekly_profit = sum(p.get('amount', 0) for p in week_profits)
+    
+    # Get profits for today
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    today_profits = [p for p in all_profits if datetime.fromisoformat(p['profit_date']) >= today_start]
+    daily_profit = sum(p.get('amount', 0) for p in today_profits)
+    
+    return {
+        "total_profit": total_profit,
+        "profit_count": profit_count,
+        "monthly_profit": monthly_profit,
+        "weekly_profit": weekly_profit,
+        "daily_profit": daily_profit,
+        "average_profit": total_profit / profit_count if profit_count > 0 else 0
+    }
+
 # ==================== ADMIN ROUTES ====================
 
 @api_router.get("/admin/deposits")
