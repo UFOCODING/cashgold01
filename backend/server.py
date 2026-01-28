@@ -227,25 +227,36 @@ def determine_vip_level(amount: float) -> int:
     return 0
 
 async def calculate_and_update_profits():
-    """Background task to calculate daily profits for all active investments"""
+    """Background task to calculate and distribute daily profits (5% per day) - Runs every 24 hours"""
     active_investments = await db.investments.find({"is_active": True}).to_list(None)
     
     for inv_doc in active_investments:
         investment = Investment(**inv_doc)
         
-        # Calculate time since last profit
+        # Calculate time since last profit distribution
         now = datetime.now(timezone.utc)
-        time_diff = now - investment.last_profit_time
-        hours_passed = time_diff.total_seconds() / 3600
+        last_profit = investment.last_profit_time
+        if isinstance(last_profit, str):
+            last_profit = datetime.fromisoformat(last_profit)
         
-        # Calculate profit (5% per day = ~0.208% per hour)
-        if hours_passed >= 1:
+        time_diff = now - last_profit
+        days_passed = time_diff.total_seconds() / 86400  # Convert to days
+        
+        # Distribute profit only if at least 1 day has passed
+        if days_passed >= 1:
+            # Calculate daily profit (5% of invested amount)
             daily_rate = investment.daily_return_rate / 100
-            hourly_rate = daily_rate / 24
-            profit = investment.amount * hourly_rate * hours_passed
+            profit = investment.amount * daily_rate * int(days_passed)  # Only full days
             
-            # Update investment
+            # Get user current balance
+            user_doc = await db.users.find_one({"id": investment.user_id})
+            if not user_doc:
+                continue
+                
+            new_balance = user_doc.get('balance', 0.0) + profit
             new_total_earned = investment.total_earned + profit
+            
+            # Update investment total earned
             await db.investments.update_one(
                 {"id": investment.id},
                 {"$set": {
@@ -254,7 +265,7 @@ async def calculate_and_update_profits():
                 }}
             )
             
-            # Update user balance and total profits
+            # Add profit to user's main balance (not invested balance)
             await db.users.update_one(
                 {"id": investment.user_id},
                 {
@@ -265,6 +276,21 @@ async def calculate_and_update_profits():
                     "$set": {"last_profit_calculation": now.isoformat()}
                 }
             )
+            
+            # Create profit history record
+            profit_history = ProfitHistory(
+                user_id=investment.user_id,
+                investment_id=investment.id,
+                amount=profit,
+                profit_date=now,
+                balance_after=new_balance
+            )
+            
+            history_dict = profit_history.model_dump()
+            history_dict['profit_date'] = history_dict['profit_date'].isoformat()
+            await db.profit_history.insert_one(history_dict)
+            
+            logging.info(f"Profit distributed: User {investment.user_id}, Amount ${profit:.2f}, New balance: ${new_balance:.2f}")
 
 # ==================== AUTHENTICATION ROUTES ====================
 
