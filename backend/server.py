@@ -667,12 +667,30 @@ async def admin_approve_deposit(deposit_id: str, current_user: User = Depends(ge
     if deposit_doc['status'] != 'pending':
         raise HTTPException(status_code=400, detail="Deposit already processed")
     
+    # Check if 12-hour delay has passed
+    created_at = deposit_doc['created_at']
+    if isinstance(created_at, str):
+        created_at = datetime.fromisoformat(created_at)
+    
+    now = datetime.now(timezone.utc)
+    hours_since_creation = (now - created_at).total_seconds() / 3600
+    
+    settings_doc = await db.settings.find_one({"id": "global_settings"})
+    required_delay = settings_doc.get("deposit_delay_hours", 12) if settings_doc else 12
+    
+    if hours_since_creation < required_delay:
+        remaining_hours = required_delay - hours_since_creation
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Deposit can only be approved after {required_delay} hours. Remaining time: {remaining_hours:.1f} hours"
+        )
+    
     # Update deposit status
     await db.deposits.update_one(
         {"id": deposit_id},
         {"$set": {
             "status": "approved",
-            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "processed_at": now.isoformat(),
             "processed_by": current_user.id
         }}
     )
@@ -702,7 +720,7 @@ async def admin_approve_deposit(deposit_id: str, current_user: User = Depends(ge
                 {"$inc": {"bonus_amount": bonus}}
             )
     
-    return {"message": "Deposit approved"}
+    return {"message": "Deposit approved and funds added to user balance"}
 
 @api_router.post("/admin/deposits/{deposit_id}/reject")
 async def admin_reject_deposit(deposit_id: str, current_user: User = Depends(get_admin_user)):
