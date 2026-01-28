@@ -119,7 +119,10 @@ class Settings(BaseModel):
     min_deposit: float = 10.0
     min_withdrawal: float = 10.0
     referral_bonus_rate: float = 5.0  # 5%
-    withdrawal_delay_hours: int = 0  # instant
+    deposit_delay_hours: int = 12  # 12 hours delay before admin can approve
+    withdrawal_min_delay_minutes: int = 30  # minimum 30 minutes
+    withdrawal_max_delay_hours: int = 24  # maximum 24 hours
+    max_daily_withdrawal_amount: float = 10000.0  # Maximum withdrawal per day per user
     
 # ==================== REQUEST/RESPONSE MODELS ====================
 
