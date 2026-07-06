@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, BackgroundTasks
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, BackgroundTasks, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -14,6 +14,10 @@ from passlib.context import CryptContext
 import jwt
 import secrets
 import random
+import re
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -26,12 +30,21 @@ db = client[os.environ['DB_NAME']]
 # Security
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
-SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
+SECRET_KEY = os.environ['SECRET_KEY']
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
 
+# Brute-force protection
+MAX_LOGIN_ATTEMPTS = 5
+LOCKOUT_MINUTES = 15
+
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address)
+
 # Create the main app without a prefix
 app = FastAPI(title="CashGold API")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -141,15 +154,15 @@ class Verify2FARequest(BaseModel):
     code: str
 
 class DepositRequest(BaseModel):
-    amount: float
+    amount: float = Field(gt=0, le=1_000_000)
     tx_hash: Optional[str] = None
 
 class WithdrawalRequest(BaseModel):
-    amount: float
-    wallet_address: str
+    amount: float = Field(gt=0, le=1_000_000)
+    wallet_address: str = Field(min_length=10, max_length=128)
 
 class InvestmentRequest(BaseModel):
-    amount: float
+    amount: float = Field(gt=0, le=1_000_000)
 
 class UserResponse(BaseModel):
     id: str
@@ -177,6 +190,36 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
+def validate_password_strength(password: str):
+    if len(password) < 8:
+        raise HTTPException(status_code=400, detail="Le mot de passe doit contenir au moins 8 caractères")
+    if not re.search(r"[A-Za-z]", password) or not re.search(r"[0-9]", password):
+        raise HTTPException(status_code=400, detail="Le mot de passe doit contenir des lettres et des chiffres")
+
+async def check_login_lockout(identifier: str):
+    now = datetime.now(timezone.utc)
+    doc = await db.login_attempts.find_one({"identifier": identifier})
+    if doc and doc.get("locked_until"):
+        locked_until = doc["locked_until"]
+        if isinstance(locked_until, str):
+            locked_until = datetime.fromisoformat(locked_until)
+        if now < locked_until:
+            remaining = int((locked_until - now).total_seconds() / 60) + 1
+            raise HTTPException(status_code=429, detail=f"Trop de tentatives. Compte temporairement verrouillé. Réessayez dans {remaining} minute(s).")
+
+async def record_failed_login(identifier: str):
+    now = datetime.now(timezone.utc)
+    doc = await db.login_attempts.find_one({"identifier": identifier})
+    attempts = (doc.get("attempts", 0) if doc else 0) + 1
+    update = {"attempts": attempts, "last_attempt": now.isoformat()}
+    if attempts >= MAX_LOGIN_ATTEMPTS:
+        update["locked_until"] = (now + timedelta(minutes=LOCKOUT_MINUTES)).isoformat()
+        update["attempts"] = 0
+    await db.login_attempts.update_one({"identifier": identifier}, {"$set": update}, upsert=True)
+
+async def clear_login_attempts(identifier: str):
+    await db.login_attempts.delete_one({"identifier": identifier})
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
@@ -199,7 +242,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.JWTError:
+    except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Could not validate credentials")
     
     user_doc = await db.users.find_one({"id": user_id})
@@ -295,18 +338,23 @@ async def calculate_and_update_profits():
 # ==================== AUTHENTICATION ROUTES ====================
 
 @api_router.post("/auth/register", response_model=TokenResponse)
-async def register(request: RegisterRequest):
+@limiter.limit("5/minute")
+async def register(request: Request, data: RegisterRequest):
+    # Validate password strength
+    validate_password_strength(data.password)
+
+    email = data.email.lower()
     # Check if user exists
-    existing_user = await db.users.find_one({"email": request.email})
+    existing_user = await db.users.find_one({"email": email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
     # Create user with registration bonus
     user = User(
-        email=request.email,
-        username=request.username,
-        password_hash=hash_password(request.password),
-        referred_by=request.referral_code,
+        email=email,
+        username=data.username,
+        password_hash=hash_password(data.password),
+        referred_by=data.referral_code,
         balance=6.0  # Registration bonus
     )
     
@@ -315,8 +363,8 @@ async def register(request: RegisterRequest):
     await db.users.insert_one(user_dict)
     
     # Handle referral bonus
-    if request.referral_code:
-        referrer = await db.users.find_one({"referral_code": request.referral_code})
+    if data.referral_code:
+        referrer = await db.users.find_one({"referral_code": data.referral_code})
         if referrer:
             referral = Referral(
                 referrer_id=referrer['id'],
@@ -349,20 +397,30 @@ async def register(request: RegisterRequest):
     )
 
 @api_router.post("/auth/login", response_model=TokenResponse)
-async def login(request: LoginRequest):
-    user_doc = await db.users.find_one({"email": request.email})
+@limiter.limit("10/minute")
+async def login(request: Request, data: LoginRequest):
+    email = data.email.lower()
+    identifier = email
+
+    # Brute-force lockout check (per account)
+    await check_login_lockout(identifier)
+
+    user_doc = await db.users.find_one({"email": email})
     if not user_doc:
+        await record_failed_login(identifier)
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
     user = User(**user_doc)
     
-    if not verify_password(request.password, user.password_hash):
+    if not verify_password(data.password, user.password_hash):
+        await record_failed_login(identifier)
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is suspended")
     
-    # Direct login without 2FA for everyone
+    # Successful login - clear failed attempts
+    await clear_login_attempts(identifier)
     access_token = create_access_token(data={"sub": user.id})
     
     user_response = UserResponse(
@@ -531,11 +589,14 @@ async def create_withdrawal(request: WithdrawalRequest, current_user: User = Dep
     withdrawal_dict['created_at'] = withdrawal_dict['created_at'].isoformat()
     await db.withdrawals.insert_one(withdrawal_dict)
     
-    # Deduct from balance immediately
-    await db.users.update_one(
-        {"id": current_user.id},
+    # Deduct from balance atomically (prevents race/double-spend)
+    result = await db.users.update_one(
+        {"id": current_user.id, "balance": {"$gte": request.amount}},
         {"$inc": {"balance": -request.amount}}
     )
+    if result.modified_count == 0:
+        await db.withdrawals.delete_one({"id": withdrawal.id})
+        raise HTTPException(status_code=400, detail="Insufficient balance")
     
     return {
         "message": "Withdrawal request submitted. Processing time: 30 minutes to 24 hours", 
@@ -581,13 +642,17 @@ async def create_investment(request: InvestmentRequest, current_user: User = Dep
     new_invested = current_user.invested_balance + request.amount
     new_vip = determine_vip_level(new_invested)
     
-    await db.users.update_one(
-        {"id": current_user.id},
+    # Update user atomically (prevents race/double-spend)
+    result = await db.users.update_one(
+        {"id": current_user.id, "balance": {"$gte": request.amount}},
         {
             "$inc": {"balance": -request.amount, "invested_balance": request.amount},
             "$set": {"vip_level": new_vip}
         }
     )
+    if result.modified_count == 0:
+        await db.investments.delete_one({"id": investment.id})
+        raise HTTPException(status_code=400, detail="Insufficient balance")
     
     return {"message": "Investment created successfully", "investment_id": investment.id, "vip_level": vip_level}
 
@@ -956,17 +1021,20 @@ async def calculate_profits(background_tasks: BackgroundTasks):
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 @api_router.post("/chatbot")
-async def chatbot_endpoint(request: dict):
-    user_message = request.get('message', '')
-    session_id = request.get('session_id', 'default')
+@limiter.limit("15/minute")
+async def chatbot_endpoint(request: Request, payload: dict):
+    user_message = payload.get('message', '')
+    session_id = payload.get('session_id', 'default')
     
     if not user_message:
         raise HTTPException(status_code=400, detail="Message is required")
+    if len(str(user_message)) > 1000:
+        raise HTTPException(status_code=400, detail="Message too long")
     
     try:
         # Initialize LLM chat with Emergent key
         chat = LlmChat(
-            api_key=os.environ.get('EMERGENT_LLM_KEY', 'sk-emergent-0AdAaE61fFc5dD2Fc1'),
+            api_key=os.environ['EMERGENT_LLM_KEY'],
             session_id=session_id,
             system_message="""Tu es un assistant service client pour CashGold, une plateforme d'investissement en ligne. 
 
@@ -1011,11 +1079,22 @@ app.include_router(api_router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
+    allow_credentials=False,
     allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    return response
 
 # Configure logging
 logging.basicConfig(
@@ -1023,6 +1102,14 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+@app.on_event("startup")
+async def create_indexes():
+    try:
+        await db.login_attempts.create_index("identifier", unique=True)
+        await db.users.create_index("email", unique=True)
+    except Exception as e:
+        logging.warning(f"Index creation warning: {e}")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
