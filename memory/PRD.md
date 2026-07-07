@@ -38,6 +38,14 @@ Complete online investment platform "CashGold". Modern elegant gold & black them
   - Chatbot input length cap (1000) + env-required LLM key (no hardcoded fallback).
   - Email normalized to lowercase; unique index on users.email.
 
+## i18n full coverage (2026-07-07)
+- Fixed: only HomePage was translated; language change now applies to ALL pages.
+- Wired `useLanguage`/`t()` into Login, Register, Dashboard, Admin, FAQ, About, Contact.
+- Added `LanguageSelector` to every page nav (previously only on HomePage).
+- New `/app/frontend/src/i18n/translationsPages.js` (common, toast, faqPage, aboutPage, contactPage) merged into `translations.js` for all 6 languages.
+- Removed stray junk `<a>` link in AdminDashboard users tab.
+- Verified via screenshots: Login (EN), FAQ full Q&A (DE), Admin dashboard (ES).
+
 ## Backlog / Remaining
 - P1: Full end-to-end verification of referral bonus flow (curl/testing agent).
 - P2: Anti-fraud system / user activity logs tab in admin dashboard.

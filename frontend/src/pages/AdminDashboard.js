@@ -6,9 +6,12 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { toast } from 'sonner';
+import { useLanguage } from '../i18n/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [stats, setStats] = useState(null);
   const [deposits, setDeposits] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
@@ -35,7 +38,7 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error loading admin data:', error);
       if (error.response?.status === 403) {
-        toast.error('Accès refusé. Droits administrateur requis.');
+        toast.error(t('toast.accessDenied'));
         navigate('/dashboard');
       }
     } finally {
@@ -46,54 +49,54 @@ const AdminDashboard = () => {
   const handleApproveDeposit = async (depositId) => {
     try {
       await axios.post(`${API}/admin/deposits/${depositId}/approve`);
-      toast.success('Dépôt approuvé !');
+      toast.success(t('toast.depositApproved'));
       loadData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur');
+      toast.error(error.response?.data?.detail || t('toast.error'));
     }
   };
 
   const handleRejectDeposit = async (depositId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir rejeter ce dépôt ?')) return;
+    if (!window.confirm(t('toast.rejectConfirm'))) return;
 
     try {
       await axios.post(`${API}/admin/deposits/${depositId}/reject`);
-      toast.success('Dépôt rejeté');
+      toast.success(t('toast.depositRejected'));
       loadData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur');
+      toast.error(error.response?.data?.detail || t('toast.error'));
     }
   };
 
   const handleCompleteWithdrawal = async (withdrawalId) => {
     try {
       await axios.post(`${API}/admin/withdrawals/${withdrawalId}/complete`);
-      toast.success('Retrait complété !');
+      toast.success(t('toast.withdrawCompleted'));
       loadData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur');
+      toast.error(error.response?.data?.detail || t('toast.error'));
     }
   };
 
   const handleSuspendUser = async (userId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir suspendre cet utilisateur ?')) return;
+    if (!window.confirm(t('toast.suspendConfirm'))) return;
 
     try {
       await axios.post(`${API}/admin/users/${userId}/suspend`);
-      toast.success('Utilisateur suspendu');
+      toast.success(t('toast.userSuspended'));
       loadData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur');
+      toast.error(error.response?.data?.detail || t('toast.error'));
     }
   };
 
   const handleActivateUser = async (userId) => {
     try {
       await axios.post(`${API}/admin/users/${userId}/activate`);
-      toast.success('Utilisateur activé');
+      toast.success(t('toast.userActivated'));
       loadData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur');
+      toast.error(error.response?.data?.detail || t('toast.error'));
     }
   };
 
@@ -102,12 +105,24 @@ const AdminDashboard = () => {
     navigate('/');
   };
 
+  const statusLabel = (status) => {
+    const map = {
+      approved: t('dashboard.status.approved'),
+      rejected: t('dashboard.status.rejected'),
+      completed: t('dashboard.status.completed'),
+      processing: t('dashboard.status.processing'),
+      pending: t('dashboard.status.pending'),
+      expired: t('dashboard.status.rejected')
+    };
+    return map[status] || status;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-[#d4af37] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-400">Chargement...</p>
+          <p className="text-gray-400">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -122,16 +137,17 @@ const AdminDashboard = () => {
             <div className="w-10 h-10 rounded-full gold-gradient flex items-center justify-center text-black font-bold text-xl">
               C
             </div>
-            <span className="text-2xl font-bold gold-text">CashGold Admin</span>
+            <span className="text-2xl font-bold gold-text">{t('admin.title')}</span>
           </Link>
           <div className="flex items-center space-x-4">
+            <LanguageSelector />
             <Link to="/dashboard">
               <Button data-testid="user-dashboard-btn" variant="outline" className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black">
-                Dashboard Utilisateur
+                {t('nav.userDashboard')}
               </Button>
             </Link>
             <Button data-testid="admin-logout-btn" onClick={handleLogout} variant="outline" className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black">
-              Déconnexion
+              {t('nav.logout')}
             </Button>
           </div>
         </div>
@@ -142,7 +158,7 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="glass border-[#d4af37]/30">
             <CardHeader>
-              <CardTitle className="text-gray-400 text-sm">Utilisateurs totaux</CardTitle>
+              <CardTitle className="text-gray-400 text-sm">{t('admin.totalUsers')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold gold-text" data-testid="total-users">{stats?.total_users || 0}</p>
@@ -151,7 +167,7 @@ const AdminDashboard = () => {
 
           <Card className="glass border-[#d4af37]/30">
             <CardHeader>
-              <CardTitle className="text-gray-400 text-sm">Dépôts totaux</CardTitle>
+              <CardTitle className="text-gray-400 text-sm">{t('admin.totalDeposits')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-green-400" data-testid="total-deposits">${stats?.total_deposits?.toFixed(2) || '0.00'}</p>
@@ -160,7 +176,7 @@ const AdminDashboard = () => {
 
           <Card className="glass border-[#d4af37]/30">
             <CardHeader>
-              <CardTitle className="text-gray-400 text-sm">Retraits totaux</CardTitle>
+              <CardTitle className="text-gray-400 text-sm">{t('admin.totalWithdrawals')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-red-400" data-testid="total-withdrawals">${stats?.total_withdrawals?.toFixed(2) || '0.00'}</p>
@@ -169,7 +185,7 @@ const AdminDashboard = () => {
 
           <Card className="glass border-[#d4af37]/30">
             <CardHeader>
-              <CardTitle className="text-gray-400 text-sm">Profit plateforme</CardTitle>
+              <CardTitle className="text-gray-400 text-sm">{t('admin.platformProfit')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold gold-text" data-testid="platform-profit">${stats?.platform_profit?.toFixed(2) || '0.00'}</p>
@@ -181,13 +197,13 @@ const AdminDashboard = () => {
         <Tabs defaultValue="deposits" className="space-y-6">
           <TabsList className="glass w-full justify-start overflow-x-auto">
             <TabsTrigger data-testid="admin-tab-deposits" value="deposits" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">
-              Dépôts ({deposits.filter(d => d.status === 'pending').length})
+              {t('admin.tabs.deposits')} ({deposits.filter(d => d.status === 'pending').length})
             </TabsTrigger>
             <TabsTrigger data-testid="admin-tab-withdrawals" value="withdrawals" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">
-              Retraits ({withdrawals.filter(w => w.status === 'pending').length})
+              {t('admin.tabs.withdrawals')} ({withdrawals.filter(w => w.status === 'pending').length})
             </TabsTrigger>
             <TabsTrigger data-testid="admin-tab-users" value="users" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">
-              Utilisateurs ({users.length})
+              {t('admin.tabs.users')} ({users.length})
             </TabsTrigger>
           </TabsList>
 
@@ -195,11 +211,11 @@ const AdminDashboard = () => {
           <TabsContent value="deposits">
             <Card className="glass border-[#d4af37]/30">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">Gestion des dépôts</CardTitle>
+                <CardTitle className="text-2xl font-bold">{t('admin.deposits.title')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {deposits.length === 0 ? (
-                  <p className="text-gray-400 text-center py-8">Aucun dépôt</p>
+                  <p className="text-gray-400 text-center py-8">{t('common.noDeposits')}</p>
                 ) : (
                   <div className="space-y-4">
                     {deposits.map((dep) => {
@@ -209,17 +225,17 @@ const AdminDashboard = () => {
                           <div className="flex justify-between items-start mb-3">
                             <div>
                               <p className="font-bold text-lg">${dep.amount.toFixed(2)}</p>
-                              <p className="text-sm text-gray-400">Utilisateur: {user?.username || 'N/A'}</p>
+                              <p className="text-sm text-gray-400">{t('admin.deposits.user')}: {user?.username || 'N/A'}</p>
                               <p className="text-xs text-gray-500">{user?.email || 'N/A'}</p>
                               <p className="text-xs text-gray-500">{new Date(dep.created_at).toLocaleString()}</p>
                               {dep.tx_hash && <p className="text-xs text-gray-500 mt-1">TX: {dep.tx_hash}</p>}
                             </div>
                             <span className={`px-3 py-1 rounded-full text-sm ${
                               dep.status === 'approved' ? 'bg-green-500/20 text-green-400' :
-                              dep.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                              (dep.status === 'rejected' || dep.status === 'expired') ? 'bg-red-500/20 text-red-400' :
                               'bg-yellow-500/20 text-yellow-400'
                             }`}>
-                              {dep.status === 'approved' ? 'Approuvé' : dep.status === 'rejected' ? 'Rejeté' : 'En attente'}
+                              {statusLabel(dep.status)}
                             </span>
                           </div>
                           {dep.status === 'pending' && (
@@ -229,7 +245,7 @@ const AdminDashboard = () => {
                                 onClick={() => handleApproveDeposit(dep.id)}
                                 className="btn-gold flex-1"
                               >
-                                Approuver
+                                {t('admin.deposits.approve')}
                               </Button>
                               <Button
                                 data-testid={`reject-deposit-${dep.id}`}
@@ -237,7 +253,7 @@ const AdminDashboard = () => {
                                 variant="destructive"
                                 className="flex-1"
                               >
-                                Rejeter
+                                {t('admin.deposits.reject')}
                               </Button>
                             </div>
                           )}
@@ -254,11 +270,11 @@ const AdminDashboard = () => {
           <TabsContent value="withdrawals">
             <Card className="glass border-[#d4af37]/30">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">Gestion des retraits</CardTitle>
+                <CardTitle className="text-2xl font-bold">{t('admin.withdrawals.title')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {withdrawals.length === 0 ? (
-                  <p className="text-gray-400 text-center py-8">Aucun retrait</p>
+                  <p className="text-gray-400 text-center py-8">{t('common.noWithdrawals')}</p>
                 ) : (
                   <div className="space-y-4">
                     {withdrawals.map((wtd) => {
@@ -268,19 +284,19 @@ const AdminDashboard = () => {
                           <div className="flex justify-between items-start mb-3">
                             <div className="flex-1">
                               <p className="font-bold text-lg">${wtd.amount.toFixed(2)}</p>
-                              <p className="text-sm text-gray-400">Utilisateur: {user?.username || 'N/A'}</p>
+                              <p className="text-sm text-gray-400">{t('admin.deposits.user')}: {user?.username || 'N/A'}</p>
                               <p className="text-xs text-gray-500">{user?.email || 'N/A'}</p>
                               <p className="text-xs text-gray-500">{new Date(wtd.created_at).toLocaleString()}</p>
                               <div className="mt-2 flex items-center space-x-2">
-                                <p className="text-sm font-semibold text-[#d4af37]">Adresse de retrait:</p>
+                                <p className="text-sm font-semibold text-[#d4af37]">{t('common.withdrawAddress')}</p>
                                 <button
                                   onClick={() => {
                                     navigator.clipboard.writeText(wtd.wallet_address);
-                                    toast.success('Adresse copiée !');
+                                    toast.success(t('toast.addressCopied'));
                                   }}
                                   className="text-xs bg-[#d4af37]/20 hover:bg-[#d4af37]/30 px-2 py-1 rounded transition-colors"
                                 >
-                                  📋 Copier
+                                  {t('common.copy')}
                                 </button>
                               </div>
                               <p className="text-xs text-white bg-black/50 p-2 rounded mt-1 font-mono break-all">{wtd.wallet_address}</p>
@@ -290,7 +306,7 @@ const AdminDashboard = () => {
                               wtd.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
                               'bg-yellow-500/20 text-yellow-400'
                             }`}>
-                              {wtd.status === 'completed' ? 'Complété' : wtd.status === 'rejected' ? 'Rejeté' : 'En attente'}
+                              {statusLabel(wtd.status)}
                             </span>
                           </div>
                           {wtd.status === 'pending' && (
@@ -299,7 +315,7 @@ const AdminDashboard = () => {
                               onClick={() => handleCompleteWithdrawal(wtd.id)}
                               className="btn-gold w-full"
                             >
-                              Marquer comme complété
+                              {t('admin.withdrawals.complete')}
                             </Button>
                           )}
                         </div>
@@ -315,11 +331,11 @@ const AdminDashboard = () => {
           <TabsContent value="users">
             <Card className="glass border-[#d4af37]/30">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">Gestion des utilisateurs</CardTitle>
+                <CardTitle className="text-2xl font-bold">{t('admin.users.title')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {users.length === 0 ? (
-                  <p className="text-gray-400 text-center py-8">Aucun utilisateur</p>
+                  <p className="text-gray-400 text-center py-8">{t('common.noUsers')}</p>
                 ) : (
                   <div className="space-y-4">
                     {users.map((user) => (
@@ -330,21 +346,21 @@ const AdminDashboard = () => {
                             <p className="text-sm text-gray-400">{user.email}</p>
                             <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
                               <div>
-                                <span className="text-gray-500">Solde: </span>
+                                <span className="text-gray-500">{t('admin.users.balance')}: </span>
                                 <span className="text-white">${user.balance?.toFixed(2) || '0.00'}</span>
                               </div>
                               <div>
-                                <span className="text-gray-500">Investi: </span>
+                                <span className="text-gray-500">{t('admin.users.invested')}: </span>
                                 <span className="text-white">${user.invested_balance?.toFixed(2) || '0.00'}</span>
                               </div>
                               <div>
-                                <span className="text-gray-500">VIP: </span>
+                                <span className="text-gray-500">{t('common.vip')}: </span>
                                 <span className="gold-text">{user.vip_level}</span>
                               </div>
                               <div>
-                                <span className="text-gray-500">Admin: </span>
+                                <span className="text-gray-500">{t('common.admin')}: </span>
                                 <span className={user.is_admin ? 'text-green-400' : 'text-gray-400'}>
-                                  {user.is_admin ? 'Oui' : 'Non'}
+                                  {user.is_admin ? t('common.yes') : t('common.no')}
                                 </span>
                               </div>
                             </div>
@@ -357,7 +373,7 @@ const AdminDashboard = () => {
                                 variant="destructive"
                                 size="sm"
                               >
-                                Suspendre
+                                {t('admin.users.suspend')}
                               </Button>
                             ) : (
                               <Button
@@ -366,7 +382,7 @@ const AdminDashboard = () => {
                                 className="btn-gold"
                                 size="sm"
                               >
-                                Activer
+                                {t('admin.users.activate')}
                               </Button>
                             )}
                           </div>
@@ -375,9 +391,8 @@ const AdminDashboard = () => {
                           <span className={`px-3 py-1 rounded-full text-xs ${
                             user.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
                           }`}>
-                            {user.is_active ? 'Actif' : 'Suspendu'}
+                            {user.is_active ? t('admin.users.active') : t('admin.users.suspended')}
                           </span>
-                          <a href='app.js/dashboardpage.js/indess.css'>Notif received </a>
                         </div>
                       </div>
                     ))}

@@ -6,9 +6,12 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
+import { useLanguage } from '../i18n/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const refCode = searchParams.get('ref');
 
@@ -29,12 +32,12 @@ const RegisterPage = () => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Les mots de passe ne correspondent pas');
+      toast.error(t('toast.passwordMismatch'));
       return;
     }
 
     if (formData.password.length < 8) {
-      toast.error('Le mot de passe doit contenir au moins 8 caractères (lettres et chiffres)');
+      toast.error(t('toast.passwordTooShort'));
       return;
     }
 
@@ -48,13 +51,12 @@ const RegisterPage = () => {
         referral_code: formData.referral_code || null
       });
 
-      // Inscription réussie - connexion immédiate
       localStorage.setItem('token', response.data.access_token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      toast.success('🎉 Compte créé avec succès ! Bonus de 6$ offert ! Bienvenue sur CashGold.');
+      toast.success(t('toast.registerSuccess'));
       navigate('/dashboard');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur lors de l\'inscription');
+      toast.error(error.response?.data?.detail || t('toast.registerError'));
     } finally {
       setLoading(false);
     }
@@ -62,6 +64,9 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4 py-12">
+      <div className="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2 mb-6">
@@ -70,14 +75,14 @@ const RegisterPage = () => {
             </div>
             <span className="text-3xl font-bold gold-text">CashGold</span>
           </Link>
-          <h1 className="text-4xl font-bold mb-2">Inscription</h1>
-          <p className="text-gray-400">Créez votre compte d'investissement</p>
+          <h1 className="text-4xl font-bold mb-2">{t('auth.registerTitle')}</h1>
+          <p className="text-gray-400">{t('auth.registerSubtitle')}</p>
         </div>
 
         <div className="glass rounded-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="email" className="text-gray-300 mb-2 block">Email</Label>
+              <Label htmlFor="email" className="text-gray-300 mb-2 block">{t('auth.email')}</Label>
               <Input
                 id="email"
                 data-testid="register-email-input"
@@ -92,7 +97,7 @@ const RegisterPage = () => {
             </div>
 
             <div>
-              <Label htmlFor="username" className="text-gray-300 mb-2 block">Nom d'utilisateur</Label>
+              <Label htmlFor="username" className="text-gray-300 mb-2 block">{t('auth.username')}</Label>
               <Input
                 id="username"
                 data-testid="register-username-input"
@@ -107,7 +112,7 @@ const RegisterPage = () => {
             </div>
 
             <div>
-              <Label htmlFor="password" className="text-gray-300 mb-2 block">Mot de passe</Label>
+              <Label htmlFor="password" className="text-gray-300 mb-2 block">{t('auth.password')}</Label>
               <Input
                 id="password"
                 data-testid="register-password-input"
@@ -122,7 +127,7 @@ const RegisterPage = () => {
             </div>
 
             <div>
-              <Label htmlFor="confirmPassword" className="text-gray-300 mb-2 block">Confirmer le mot de passe</Label>
+              <Label htmlFor="confirmPassword" className="text-gray-300 mb-2 block">{t('auth.confirmPassword')}</Label>
               <Input
                 id="confirmPassword"
                 data-testid="register-confirm-password-input"
@@ -137,7 +142,7 @@ const RegisterPage = () => {
             </div>
 
             <div>
-              <Label htmlFor="referral_code" className="text-gray-300 mb-2 block">Code de parrainage (optionnel)</Label>
+              <Label htmlFor="referral_code" className="text-gray-300 mb-2 block">{t('auth.referralCode')}</Label>
               <Input
                 id="referral_code"
                 data-testid="register-referral-input"
@@ -156,15 +161,15 @@ const RegisterPage = () => {
               className="btn-gold w-full"
               disabled={loading}
             >
-              {loading ? 'Inscription...' : 'S\'inscrire'}
+              {loading ? '...' : t('auth.signUp')}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-gray-400">
-              Déjà un compte ?{' '}
+              {t('auth.haveAccount')}{' '}
               <Link to="/login" className="text-[#d4af37] hover:underline">
-                Se connecter
+                {t('auth.signIn')}
               </Link>
             </p>
           </div>
@@ -172,7 +177,7 @@ const RegisterPage = () => {
 
         <div className="text-center mt-6">
           <Link to="/" className="text-gray-400 hover:text-[#d4af37] transition-colors">
-            ← Retour à l'accueil
+            ← {t('common.backHome')}
           </Link>
         </div>
       </div>

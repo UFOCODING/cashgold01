@@ -6,9 +6,12 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
+import { useLanguage } from '../i18n/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -25,26 +28,18 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(`${API}/auth/login`, formData);
+      localStorage.setItem('token', response.data.access_token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
 
-      if (response.data.requires_2fa) {
-        localStorage.setItem('pending_email', formData.email);
-        toast.success('Code de vérification envoyé par email (consultez les logs)');
-        navigate('/verify-2fa');
+      if (response.data.user.is_admin) {
+        toast.success(t('toast.adminLoginSuccess'));
+        navigate('/admin');
       } else {
-        localStorage.setItem('token', response.data.access_token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        
-        // Redirect based on user role
-        if (response.data.user.is_admin) {
-          toast.success('Connexion admin réussie !');
-          navigate('/admin');
-        } else {
-          toast.success('Connexion réussie !');
-          navigate('/dashboard');
-        }
+        toast.success(t('toast.loginSuccess'));
+        navigate('/dashboard');
       }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur de connexion');
+      toast.error(error.response?.data?.detail || t('toast.loginError'));
     } finally {
       setLoading(false);
     }
@@ -52,6 +47,9 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      <div className="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2 mb-6">
@@ -60,14 +58,14 @@ const LoginPage = () => {
             </div>
             <span className="text-3xl font-bold gold-text">CashGold</span>
           </Link>
-          <h1 className="text-4xl font-bold mb-2">Connexion</h1>
-          <p className="text-gray-400">Accédez à votre tableau de bord</p>
+          <h1 className="text-4xl font-bold mb-2">{t('auth.loginTitle')}</h1>
+          <p className="text-gray-400">{t('auth.loginSubtitle')}</p>
         </div>
 
         <div className="glass rounded-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="email" className="text-gray-300 mb-2 block">Email</Label>
+              <Label htmlFor="email" className="text-gray-300 mb-2 block">{t('auth.email')}</Label>
               <Input
                 id="email"
                 data-testid="login-email-input"
@@ -82,7 +80,7 @@ const LoginPage = () => {
             </div>
 
             <div>
-              <Label htmlFor="password" className="text-gray-300 mb-2 block">Mot de passe</Label>
+              <Label htmlFor="password" className="text-gray-300 mb-2 block">{t('auth.password')}</Label>
               <Input
                 id="password"
                 data-testid="login-password-input"
@@ -102,15 +100,15 @@ const LoginPage = () => {
               className="btn-gold w-full"
               disabled={loading}
             >
-              {loading ? 'Connexion...' : 'Se connecter'}
+              {loading ? '...' : t('auth.signIn')}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-gray-400">
-              Pas encore de compte ?{' '}
+              {t('auth.noAccount')}{' '}
               <Link to="/register" className="text-[#d4af37] hover:underline">
-                S'inscrire
+                {t('auth.signUp')}
               </Link>
             </p>
           </div>
@@ -118,7 +116,7 @@ const LoginPage = () => {
 
         <div className="text-center mt-6">
           <Link to="/" className="text-gray-400 hover:text-[#d4af37] transition-colors">
-            ← Retour à l'accueil
+            ← {t('common.backHome')}
           </Link>
         </div>
       </div>

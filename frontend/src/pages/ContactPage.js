@@ -5,8 +5,11 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
+import { useLanguage } from '../i18n/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 
 const ContactPage = () => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -20,8 +23,7 @@ const ContactPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // In MVP, just show success message
-    toast.success('Message envoyé ! Nous vous répondrons bientôt.');
+    toast.success(t('toast.contactSent'));
     setFormData({ name: '', email: '', subject: '', message: '' });
   };
 
@@ -36,10 +38,11 @@ const ContactPage = () => {
             </div>
             <span className="text-2xl font-bold gold-text">CashGold</span>
           </Link>
-          <div className="flex space-x-4">
+          <div className="flex items-center space-x-4">
+            <LanguageSelector />
             <Link to="/">
               <Button variant="outline" className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black">
-                Retour à l'accueil
+                {t('common.backHome')}
               </Button>
             </Link>
           </div>
@@ -49,19 +52,19 @@ const ContactPage = () => {
       <div className="pt-32 pb-20 px-4">
         <div className="container mx-auto max-w-4xl">
           <h1 className="text-5xl md:text-6xl font-bold mb-4 text-center">
-            Contactez <span className="gold-text">CashGold</span>
+            {t('contactPage.title')} <span className="gold-text">{t('contactPage.titleGold')}</span>
           </h1>
           <p className="text-center text-gray-400 text-lg mb-12">
-            Notre équipe est là pour répondre à toutes vos questions
+            {t('contactPage.subtitle')}
           </p>
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Contact Form */}
             <div className="glass-light rounded-2xl p-8">
-              <h2 className="text-2xl font-bold mb-6">Envoyez-nous un message</h2>
+              <h2 className="text-2xl font-bold mb-6">{t('contactPage.formTitle')}</h2>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <Label htmlFor="name" className="text-gray-300 mb-2 block">Nom complet</Label>
+                  <Label htmlFor="name" className="text-gray-300 mb-2 block">{t('contactPage.name')}</Label>
                   <Input
                     id="name"
                     data-testid="contact-name-input"
@@ -70,13 +73,13 @@ const ContactPage = () => {
                     value={formData.name}
                     onChange={handleChange}
                     className="input-gold"
-                    placeholder="Votre nom"
+                    placeholder={t('contactPage.namePlaceholder')}
                     required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="email" className="text-gray-300 mb-2 block">Email</Label>
+                  <Label htmlFor="email" className="text-gray-300 mb-2 block">{t('contactPage.email')}</Label>
                   <Input
                     id="email"
                     data-testid="contact-email-input"
@@ -85,13 +88,13 @@ const ContactPage = () => {
                     value={formData.email}
                     onChange={handleChange}
                     className="input-gold"
-                    placeholder="votre@email.com"
+                    placeholder={t('contactPage.emailPlaceholder')}
                     required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="subject" className="text-gray-300 mb-2 block">Sujet</Label>
+                  <Label htmlFor="subject" className="text-gray-300 mb-2 block">{t('contactPage.subject')}</Label>
                   <Input
                     id="subject"
                     data-testid="contact-subject-input"
@@ -100,13 +103,13 @@ const ContactPage = () => {
                     value={formData.subject}
                     onChange={handleChange}
                     className="input-gold"
-                    placeholder="Sujet de votre message"
+                    placeholder={t('contactPage.subjectPlaceholder')}
                     required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="message" className="text-gray-300 mb-2 block">Message</Label>
+                  <Label htmlFor="message" className="text-gray-300 mb-2 block">{t('contactPage.message')}</Label>
                   <Textarea
                     id="message"
                     data-testid="contact-message-input"
@@ -114,13 +117,13 @@ const ContactPage = () => {
                     value={formData.message}
                     onChange={handleChange}
                     className="input-gold min-h-[150px]"
-                    placeholder="Votre message..."
+                    placeholder={t('contactPage.messagePlaceholder')}
                     required
                   />
                 </div>
 
                 <Button data-testid="contact-submit-btn" type="submit" className="btn-gold w-full">
-                  Envoyer le message
+                  {t('contactPage.sendBtn')}
                 </Button>
               </form>
             </div>
@@ -135,9 +138,9 @@ const ContactPage = () => {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold mb-2">Email</h3>
+                    <h3 className="text-xl font-bold mb-2">{t('contactPage.emailTitle')}</h3>
                     <p className="text-gray-400">support@cashgold.com</p>
-                    <p className="text-sm text-gray-500 mt-1">Réponse sous 24h</p>
+                    <p className="text-sm text-gray-500 mt-1">{t('contactPage.emailResponse')}</p>
                   </div>
                 </div>
               </div>
@@ -150,9 +153,9 @@ const ContactPage = () => {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold mb-2">Horaires</h3>
-                    <p className="text-gray-400">Support 24/7</p>
-                    <p className="text-sm text-gray-500 mt-1">Toujours disponibles pour vous</p>
+                    <h3 className="text-xl font-bold mb-2">{t('contactPage.hoursTitle')}</h3>
+                    <p className="text-gray-400">{t('contactPage.hoursValue')}</p>
+                    <p className="text-sm text-gray-500 mt-1">{t('contactPage.hoursSub')}</p>
                   </div>
                 </div>
               </div>
@@ -166,21 +169,21 @@ const ContactPage = () => {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold mb-2">Localisation</h3>
-                    <p className="text-gray-400">Service en ligne mondial</p>
-                    <p className="text-sm text-gray-500 mt-1">Accessible de partout</p>
+                    <h3 className="text-xl font-bold mb-2">{t('contactPage.locationTitle')}</h3>
+                    <p className="text-gray-400">{t('contactPage.locationValue')}</p>
+                    <p className="text-sm text-gray-500 mt-1">{t('contactPage.locationSub')}</p>
                   </div>
                 </div>
               </div>
 
               <div className="glass-light rounded-2xl p-8">
-                <h3 className="text-xl font-bold mb-4">Besoin d'aide immédiate ?</h3>
+                <h3 className="text-xl font-bold mb-4">{t('contactPage.helpTitle')}</h3>
                 <p className="text-gray-400 mb-4">
-                  Consultez notre page FAQ pour des réponses rapides aux questions courantes.
+                  {t('contactPage.helpText')}
                 </p>
                 <Link to="/faq">
                   <Button variant="outline" className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black w-full">
-                    Voir la FAQ
+                    {t('contactPage.viewFaqBtn')}
                   </Button>
                 </Link>
               </div>

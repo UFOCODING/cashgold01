@@ -1,4 +1,6 @@
-export const translations = {
+import { pageTranslations } from './translationsPages';
+
+const base = {
   fr: {
     // Navigation
     nav: {
@@ -1076,3 +1078,7 @@ export const translations = {
     }
   }
 };
+
+export const translations = Object.fromEntries(
+  Object.entries(base).map(([lang, val]) => [lang, { ...val, ...(pageTranslations[lang] || {}) }])
+);

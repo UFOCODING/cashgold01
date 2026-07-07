@@ -7,11 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { toast } from 'sonner';
+import { useLanguage } from '../i18n/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [user, setUser] = useState(null);
   const [deposits, setDeposits] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
@@ -66,12 +68,12 @@ const DashboardPage = () => {
         amount: parseFloat(depositAmount),
         tx_hash: txHash || null
       });
-      toast.success('Demande de dépôt soumise ! En attente de validation admin.');
+      toast.success(t('toast.depositSubmitted'));
       setDepositAmount('');
       setTxHash('');
       loadData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur lors du dépôt');
+      toast.error(error.response?.data?.detail || t('toast.depositError'));
     }
   };
 
@@ -82,12 +84,12 @@ const DashboardPage = () => {
         amount: parseFloat(withdrawAmount),
         wallet_address: withdrawWallet
       });
-      toast.success('Demande de retrait soumise !');
+      toast.success(t('toast.withdrawSubmitted'));
       setWithdrawAmount('');
       setWithdrawWallet('');
       loadData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur lors du retrait');
+      toast.error(error.response?.data?.detail || t('toast.withdrawError'));
     }
   };
 
@@ -97,23 +99,23 @@ const DashboardPage = () => {
       const response = await axios.post(`${API}/investments`, {
         amount: parseFloat(investAmount)
       });
-      toast.success(`Investissement créé ! Niveau VIP: ${response.data.vip_level}`);
+      toast.success(`${t('toast.investCreated')} ${response.data.vip_level}`);
       setInvestAmount('');
       loadData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur lors de l\'investissement');
+      toast.error(error.response?.data?.detail || t('toast.investError'));
     }
   };
 
   const handleStopInvestment = async (investmentId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir arrêter cet investissement ?')) return;
+    if (!window.confirm(t('toast.stopConfirm'))) return;
 
     try {
       await axios.post(`${API}/investments/${investmentId}/stop`);
-      toast.success('Investissement arrêté et capital retourné !');
+      toast.success(t('toast.investStopped'));
       loadData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur');
+      toast.error(error.response?.data?.detail || t('toast.error'));
     }
   };
 
@@ -124,7 +126,19 @@ const DashboardPage = () => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    toast.success('Copié dans le presse-papiers !');
+    toast.success(t('common.copied'));
+  };
+
+  const statusLabel = (status) => {
+    const map = {
+      approved: t('dashboard.status.approved'),
+      rejected: t('dashboard.status.rejected'),
+      completed: t('dashboard.status.completed'),
+      processing: t('dashboard.status.processing'),
+      pending: t('dashboard.status.pending'),
+      expired: t('dashboard.status.rejected')
+    };
+    return map[status] || status;
   };
 
   if (loading) {
@@ -132,7 +146,7 @@ const DashboardPage = () => {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-[#d4af37] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-400">Chargement...</p>
+          <p className="text-gray-400">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -161,18 +175,19 @@ const DashboardPage = () => {
           </Link>
           <div className="flex items-center space-x-4">
             <div className="text-right hidden md:block">
-              <p className="text-sm text-gray-400">Bonjour,</p>
+              <p className="text-sm text-gray-400">{t('dashboard.hello')}</p>
               <p className="font-semibold text-[#d4af37]" data-testid="user-name">{user?.username}</p>
             </div>
+            <LanguageSelector />
             {user?.is_admin && (
               <Link to="/admin">
                 <Button data-testid="admin-panel-btn" variant="outline" className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black">
-                  Admin
+                  {t('nav.admin')}
                 </Button>
               </Link>
             )}
             <Button data-testid="logout-btn" onClick={handleLogout} variant="outline" className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black">
-              Déconnexion
+              {t('nav.logout')}
             </Button>
           </div>
         </div>
@@ -183,7 +198,7 @@ const DashboardPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="glass border-[#d4af37]/30">
             <CardHeader>
-              <CardTitle className="text-gray-400 text-sm">Solde disponible</CardTitle>
+              <CardTitle className="text-gray-400 text-sm">{t('dashboard.availableBalance')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold gold-text" data-testid="balance-available">${user?.balance?.toFixed(2)}</p>
@@ -192,7 +207,7 @@ const DashboardPage = () => {
 
           <Card className="glass border-[#d4af37]/30">
             <CardHeader>
-              <CardTitle className="text-gray-400 text-sm">Solde investi</CardTitle>
+              <CardTitle className="text-gray-400 text-sm">{t('dashboard.investedBalance')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-white" data-testid="balance-invested">${user?.invested_balance?.toFixed(2)}</p>
@@ -201,7 +216,7 @@ const DashboardPage = () => {
 
           <Card className="glass border-[#d4af37]/30">
             <CardHeader>
-              <CardTitle className="text-gray-400 text-sm">Profits totaux</CardTitle>
+              <CardTitle className="text-gray-400 text-sm">{t('dashboard.totalProfits')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-green-400" data-testid="total-profits">${user?.total_profits?.toFixed(2)}</p>
@@ -210,7 +225,7 @@ const DashboardPage = () => {
 
           <Card className="glass border-[#d4af37]/30">
             <CardHeader>
-              <CardTitle className="text-gray-400 text-sm">Niveau VIP</CardTitle>
+              <CardTitle className="text-gray-400 text-sm">{t('dashboard.vipLevel')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold gold-text" data-testid="vip-level">{currentVIP.name}</p>
@@ -221,24 +236,24 @@ const DashboardPage = () => {
         {/* Main Tabs */}
         <Tabs defaultValue="invest" className="space-y-6">
           <TabsList className="glass w-full justify-start overflow-x-auto">
-            <TabsTrigger data-testid="tab-invest" value="invest" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">Investir</TabsTrigger>
-            <TabsTrigger data-testid="tab-deposit" value="deposit" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">Déposer</TabsTrigger>
-            <TabsTrigger data-testid="tab-withdraw" value="withdraw" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">Retirer</TabsTrigger>
-            <TabsTrigger data-testid="tab-history" value="history" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">Historique</TabsTrigger>
-            <TabsTrigger data-testid="tab-referral" value="referral" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">Parrainage</TabsTrigger>
+            <TabsTrigger data-testid="tab-invest" value="invest" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">{t('dashboard.tabs.invest')}</TabsTrigger>
+            <TabsTrigger data-testid="tab-deposit" value="deposit" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">{t('dashboard.tabs.deposit')}</TabsTrigger>
+            <TabsTrigger data-testid="tab-withdraw" value="withdraw" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">{t('dashboard.tabs.withdraw')}</TabsTrigger>
+            <TabsTrigger data-testid="tab-history" value="history" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">{t('dashboard.tabs.history')}</TabsTrigger>
+            <TabsTrigger data-testid="tab-referral" value="referral" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">{t('dashboard.tabs.referral')}</TabsTrigger>
           </TabsList>
 
           {/* Invest Tab */}
           <TabsContent value="invest" className="space-y-6">
             <Card className="glass border-[#d4af37]/30">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">Créer un investissement</CardTitle>
-                <CardDescription className="text-gray-400">Investissez votre solde et gagnez 5% par jour</CardDescription>
+                <CardTitle className="text-2xl font-bold">{t('dashboard.invest.title')}</CardTitle>
+                <CardDescription className="text-gray-400">{t('dashboard.invest.subtitle')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleInvest} className="space-y-4">
                   <div>
-                    <Label className="text-gray-300 mb-2 block">Montant à investir</Label>
+                    <Label className="text-gray-300 mb-2 block">{t('dashboard.invest.amount')}</Label>
                     <Input
                       data-testid="invest-amount-input"
                       type="number"
@@ -247,11 +262,11 @@ const DashboardPage = () => {
                       value={investAmount}
                       onChange={(e) => setInvestAmount(e.target.value)}
                       className="input-gold"
-                      placeholder="Minimum $10"
+                      placeholder={t('dashboard.invest.min')}
                       required
                     />
                   </div>
-                  <Button data-testid="invest-submit-btn" type="submit" className="btn-gold w-full">Investir maintenant</Button>
+                  <Button data-testid="invest-submit-btn" type="submit" className="btn-gold w-full">{t('dashboard.invest.button')}</Button>
                 </form>
               </CardContent>
             </Card>
@@ -259,19 +274,19 @@ const DashboardPage = () => {
             {/* Active Investments */}
             <Card className="glass border-[#d4af37]/30">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">Mes investissements actifs</CardTitle>
+                <CardTitle className="text-2xl font-bold">{t('dashboard.invest.active')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {investments.filter(inv => inv.is_active).length === 0 ? (
-                  <p className="text-gray-400 text-center py-8">Aucun investissement actif</p>
+                  <p className="text-gray-400 text-center py-8">{t('dashboard.invest.noActive')}</p>
                 ) : (
                   <div className="space-y-4">
                     {investments.filter(inv => inv.is_active).map((inv) => (
                       <div key={inv.id} data-testid={`investment-${inv.id}`} className="glass-light rounded-xl p-4 flex justify-between items-center">
                         <div>
                           <p className="text-lg font-bold">${inv.amount.toFixed(2)}</p>
-                          <p className="text-sm text-gray-400">VIP {inv.vip_level} - {inv.daily_return_rate}%/jour</p>
-                          <p className="text-sm text-green-400">Gagné: ${inv.total_earned.toFixed(2)}</p>
+                          <p className="text-sm text-gray-400">VIP {inv.vip_level} - {inv.daily_return_rate}%/{t('common.day')}</p>
+                          <p className="text-sm text-green-400">{t('dashboard.invest.earned')}: ${inv.total_earned.toFixed(2)}</p>
                         </div>
                         <Button
                           data-testid={`stop-investment-${inv.id}`}
@@ -279,7 +294,7 @@ const DashboardPage = () => {
                           variant="destructive"
                           size="sm"
                         >
-                          Arrêter
+                          {t('dashboard.invest.stop')}
                         </Button>
                       </div>
                     ))}
@@ -293,12 +308,12 @@ const DashboardPage = () => {
           <TabsContent value="deposit" className="space-y-6">
             <Card className="glass border-[#d4af37]/30">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">Déposer des fonds</CardTitle>
-                <CardDescription className="text-gray-400">Envoyez des USDT TRC20 à l'adresse ci-dessous</CardDescription>
+                <CardTitle className="text-2xl font-bold">{t('dashboard.deposit.title')}</CardTitle>
+                <CardDescription className="text-gray-400">{t('dashboard.deposit.subtitle')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="glass-light rounded-xl p-6">
-                  <Label className="text-gray-300 mb-2 block">Adresse de dépôt (USDT TRC20)</Label>
+                  <Label className="text-gray-300 mb-2 block">{t('dashboard.deposit.address')}</Label>
                   <div className="flex space-x-2">
                     <Input
                       data-testid="deposit-wallet-address"
@@ -312,14 +327,14 @@ const DashboardPage = () => {
                       variant="outline"
                       className="border-[#d4af37] text-[#d4af37]"
                     >
-                      Copier
+                      {t('dashboard.deposit.copy')}
                     </Button>
                   </div>
                 </div>
 
                 <form onSubmit={handleDeposit} className="space-y-4">
                   <div>
-                    <Label className="text-gray-300 mb-2 block">Montant déposé</Label>
+                    <Label className="text-gray-300 mb-2 block">{t('dashboard.deposit.amount')}</Label>
                     <Input
                       data-testid="deposit-amount-input"
                       type="number"
@@ -328,22 +343,22 @@ const DashboardPage = () => {
                       value={depositAmount}
                       onChange={(e) => setDepositAmount(e.target.value)}
                       className="input-gold"
-                      placeholder="Minimum $10"
+                      placeholder={t('dashboard.invest.min')}
                       required
                     />
                   </div>
                   <div>
-                    <Label className="text-gray-300 mb-2 block">Hash de transaction (optionnel)</Label>
+                    <Label className="text-gray-300 mb-2 block">{t('dashboard.deposit.txHash')}</Label>
                     <Input
                       data-testid="deposit-tx-hash-input"
                       type="text"
                       value={txHash}
                       onChange={(e) => setTxHash(e.target.value)}
                       className="input-gold"
-                      placeholder="Hash de votre transaction"
+                      placeholder="Hash"
                     />
                   </div>
-                  <Button data-testid="deposit-submit-btn" type="submit" className="btn-gold w-full">Soumettre le dépôt</Button>
+                  <Button data-testid="deposit-submit-btn" type="submit" className="btn-gold w-full">{t('dashboard.deposit.button')}</Button>
                 </form>
               </CardContent>
             </Card>
@@ -353,13 +368,13 @@ const DashboardPage = () => {
           <TabsContent value="withdraw" className="space-y-6">
             <Card className="glass border-[#d4af37]/30">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">Retirer des fonds</CardTitle>
-                <CardDescription className="text-gray-400">Retirez votre solde en USDT TRC20</CardDescription>
+                <CardTitle className="text-2xl font-bold">{t('dashboard.withdraw.title')}</CardTitle>
+                <CardDescription className="text-gray-400">{t('dashboard.withdraw.subtitle')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleWithdraw} className="space-y-4">
                   <div>
-                    <Label className="text-gray-300 mb-2 block">Montant à retirer</Label>
+                    <Label className="text-gray-300 mb-2 block">{t('dashboard.withdraw.amount')}</Label>
                     <Input
                       data-testid="withdraw-amount-input"
                       type="number"
@@ -369,12 +384,12 @@ const DashboardPage = () => {
                       value={withdrawAmount}
                       onChange={(e) => setWithdrawAmount(e.target.value)}
                       className="input-gold"
-                      placeholder={`Disponible: $${user?.balance?.toFixed(2)}`}
+                      placeholder={`${t('dashboard.withdraw.available')}: $${user?.balance?.toFixed(2)}`}
                       required
                     />
                   </div>
                   <div>
-                    <Label className="text-gray-300 mb-2 block">Adresse de portefeuille (USDT TRC20)</Label>
+                    <Label className="text-gray-300 mb-2 block">{t('dashboard.withdraw.wallet')}</Label>
                     <Input
                       data-testid="withdraw-wallet-input"
                       type="text"
@@ -385,7 +400,7 @@ const DashboardPage = () => {
                       required
                     />
                   </div>
-                  <Button data-testid="withdraw-submit-btn" type="submit" className="btn-gold w-full">Demander un retrait</Button>
+                  <Button data-testid="withdraw-submit-btn" type="submit" className="btn-gold w-full">{t('dashboard.withdraw.button')}</Button>
                 </form>
               </CardContent>
             </Card>
@@ -395,11 +410,11 @@ const DashboardPage = () => {
           <TabsContent value="history" className="space-y-6">
             <Card className="glass border-[#d4af37]/30">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">Historique des dépôts</CardTitle>
+                <CardTitle className="text-2xl font-bold">{t('dashboard.deposit.history')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {deposits.length === 0 ? (
-                  <p className="text-gray-400 text-center py-8">Aucun dépôt</p>
+                  <p className="text-gray-400 text-center py-8">{t('dashboard.deposit.noDeposits')}</p>
                 ) : (
                   <div className="space-y-3">
                     {deposits.map((dep) => (
@@ -410,10 +425,10 @@ const DashboardPage = () => {
                         </div>
                         <span className={`px-3 py-1 rounded-full text-sm ${
                           dep.status === 'approved' ? 'bg-green-500/20 text-green-400' :
-                          dep.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                          (dep.status === 'rejected' || dep.status === 'expired') ? 'bg-red-500/20 text-red-400' :
                           'bg-yellow-500/20 text-yellow-400'
                         }`}>
-                          {dep.status === 'approved' ? 'Approuvé' : dep.status === 'rejected' ? 'Rejeté' : 'En attente'}
+                          {statusLabel(dep.status)}
                         </span>
                       </div>
                     ))}
@@ -424,11 +439,11 @@ const DashboardPage = () => {
 
             <Card className="glass border-[#d4af37]/30">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">Historique des retraits</CardTitle>
+                <CardTitle className="text-2xl font-bold">{t('dashboard.withdraw.history')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {withdrawals.length === 0 ? (
-                  <p className="text-gray-400 text-center py-8">Aucun retrait</p>
+                  <p className="text-gray-400 text-center py-8">{t('dashboard.withdraw.noWithdrawals')}</p>
                 ) : (
                   <div className="space-y-3">
                     {withdrawals.map((wtd) => (
@@ -443,7 +458,7 @@ const DashboardPage = () => {
                           wtd.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
                           'bg-yellow-500/20 text-yellow-400'
                         }`}>
-                          {wtd.status === 'completed' ? 'Complété' : wtd.status === 'rejected' ? 'Rejeté' : 'En traitement'}
+                          {statusLabel(wtd.status)}
                         </span>
                       </div>
                     ))}
@@ -457,12 +472,12 @@ const DashboardPage = () => {
           <TabsContent value="referral" className="space-y-6">
             <Card className="glass border-[#d4af37]/30">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">Programme de parrainage</CardTitle>
-                <CardDescription className="text-gray-400">Gagnez 5% sur les dépôts de vos filleuls</CardDescription>
+                <CardTitle className="text-2xl font-bold">{t('dashboard.referral.title')}</CardTitle>
+                <CardDescription className="text-gray-400">{t('dashboard.referral.subtitle')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="glass-light rounded-xl p-6">
-                  <Label className="text-gray-300 mb-2 block">Votre lien de parrainage</Label>
+                  <Label className="text-gray-300 mb-2 block">{t('dashboard.referral.yourLink')}</Label>
                   <div className="flex space-x-2">
                     <Input
                       data-testid="referral-link"
@@ -476,22 +491,22 @@ const DashboardPage = () => {
                       variant="outline"
                       className="border-[#d4af37] text-[#d4af37]"
                     >
-                      Copier
+                      {t('dashboard.deposit.copy')}
                     </Button>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-bold mb-4">Mes filleuls ({referrals.length})</h3>
+                  <h3 className="text-xl font-bold mb-4">{t('dashboard.referral.myReferrals')} ({referrals.length})</h3>
                   {referrals.length === 0 ? (
-                    <p className="text-gray-400 text-center py-8">Aucun filleul pour le moment</p>
+                    <p className="text-gray-400 text-center py-8">{t('dashboard.referral.noReferrals')}</p>
                   ) : (
                     <div className="space-y-3">
                       {referrals.map((ref, idx) => (
                         <div key={idx} data-testid={`referral-${idx}`} className="glass-light rounded-xl p-4">
                           <p className="font-bold">{ref.username}</p>
                           <p className="text-sm text-gray-400">{ref.email}</p>
-                          <p className="text-sm text-green-400">Bonus gagné: ${ref.bonus_earned?.toFixed(2) || '0.00'}</p>
+                          <p className="text-sm text-green-400">{t('dashboard.referral.bonusEarned')}: ${ref.bonus_earned?.toFixed(2) || '0.00'}</p>
                         </div>
                       ))}
                     </div>
