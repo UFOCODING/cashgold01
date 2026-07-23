@@ -30,7 +30,7 @@ db = client[os.environ['DB_NAME']]
 # Security
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
-SECRET_KEY = os.environ['SECRET_KEY']
+SECRET_KEY = os.environ.get('SECRET_KEY', '607cc72ea28d4c3275acc271d0f47e979418bb92013faf949a101a70ab5b0b00')
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
 
@@ -1034,7 +1034,7 @@ async def chatbot_endpoint(request: Request, payload: dict):
     try:
         # Initialize LLM chat with Emergent key
         chat = LlmChat(
-            api_key=os.environ['EMERGENT_LLM_KEY'],
+            api_key=os.environ.get('EMERGENT_LLM_KEY', 'sk-emergent-0AdAaE61fFc5dD2Fc1'),
             session_id=session_id,
             system_message="""Tu es un assistant service client pour CashGold, une plateforme d'investissement en ligne. 
 

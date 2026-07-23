@@ -1,0 +1,164 @@
+{
+  "base_url": "https://invest-gold-2.preview.emergentagent.com",
+  "seed_email": "qa-auth-1784792871-aabeec63@example.com",
+  "passed": 9,
+  "failed": 0,
+  "results": [
+    {
+      "name": "mongo_admin_user_present",
+      "ok": true,
+      "details": {
+        "email": "admin@cashgold.com",
+        "is_admin": true,
+        "is_active": true,
+        "password_hash_prefix": "$2b$"
+      }
+    },
+    {
+      "name": "mongo_users_email_index_present",
+      "ok": true,
+      "details": {
+        "indexes": [
+          "_id_",
+          "email_1"
+        ]
+      }
+    },
+    {
+      "name": "api_valid_register_strong_password_returns_token_user",
+      "ok": true,
+      "details": {
+        "status": 200,
+        "body": {
+          "access_token": "eyJhbGciOiJIUzI1...",
+          "token_type": "bearer",
+          "requires_2fa": false,
+          "user": {
+            "id": "808993ce-d416-4339-a20d-e085d6b8511e",
+            "email": "qa-auth-1784792871-aabeec63@example.com",
+            "username": "QA Auth User",
+            "balance": 6.0,
+            "invested_balance": 0.0,
+            "total_profits": 0.0,
+            "vip_level": 0,
+            "referral_code": "PJiGsKQ2beY",
+            "is_admin": false,
+            "created_at": "2026-07-23T07:47:52.430532Z"
+          }
+        }
+      }
+    },
+    {
+      "name": "api_registered_token_reaches_auth_me",
+      "ok": true,
+      "details": {
+        "status": 200,
+        "body": {
+          "id": "808993ce-d416-4339-a20d-e085d6b8511e",
+          "email": "qa-auth-1784792871-aabeec63@example.com",
+          "username": "QA Auth User",
+          "balance": 6.0,
+          "invested_balance": 0.0,
+          "total_profits": 0.0,
+          "vip_level": 0,
+          "referral_code": "PJiGsKQ2beY",
+          "is_admin": false,
+          "created_at": "2026-07-23T07:47:52.430532Z"
+        }
+      }
+    },
+    {
+      "name": "api_weak_register_rejected_too_short",
+      "ok": true,
+      "details": {
+        "status": 400,
+        "detail": "Le mot de passe doit contenir au moins 8 caractères"
+      }
+    },
+    {
+      "name": "api_weak_register_rejected_letters_only",
+      "ok": true,
+      "details": {
+        "status": 400,
+        "detail": "Le mot de passe doit contenir des lettres et des chiffres"
+      }
+    },
+    {
+      "name": "api_admin_login_returns_token_user",
+      "ok": true,
+      "details": {
+        "status": 200,
+        "body": {
+          "access_token": "eyJhbGciOiJIUzI1...",
+          "token_type": "bearer",
+          "requires_2fa": false,
+          "user": {
+            "id": "747206c4-b962-43bd-b45c-908b9e68bb83",
+            "email": "admin@cashgold.com",
+            "username": "Admin",
+            "balance": 0.0,
+            "invested_balance": 0.0,
+            "total_profits": 0.0,
+            "vip_level": 0,
+            "referral_code": "J89f4bo_8-Q",
+            "is_admin": true,
+            "created_at": "2025-11-25T17:16:58.228246Z"
+          }
+        }
+      }
+    },
+    {
+      "name": "api_admin_token_reaches_admin_stats",
+      "ok": true,
+      "details": {
+        "status": 200,
+        "body": {
+          "total_users": 30,
+          "active_users": 30,
+          "total_deposits": 2429.85,
+          "total_withdrawals": 1070.0,
+          "total_invested": 2934.0,
+          "platform_profit": 1359.85
+        }
+      }
+    },
+    {
+      "name": "api_invalid_login_then_lockout",
+      "ok": true,
+      "details": {
+        "attempts": [
+          {
+            "attempt": 1,
+            "status": 401,
+            "detail": "Invalid email or password"
+          },
+          {
+            "attempt": 2,
+            "status": 401,
+            "detail": "Invalid email or password"
+          },
+          {
+            "attempt": 3,
+            "status": 401,
+            "detail": "Invalid email or password"
+          },
+          {
+            "attempt": 4,
+            "status": 401,
+            "detail": "Invalid email or password"
+          },
+          {
+            "attempt": 5,
+            "status": 401,
+            "detail": "Invalid email or password"
+          },
+          {
+            "attempt": 6,
+            "status": 429,
+            "detail": "Trop de tentatives. Compte temporairement verrouillé. Réessayez dans 15 minute(s)."
+          }
+        ]
+      }
+    }
+  ]
+}
