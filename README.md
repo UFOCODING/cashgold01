@@ -120,7 +120,7 @@ Pour déployer gratuitement sur Render, suivez le guide complet dans [DEPLOYMENT
 2. Copiez l'adresse USDT TRC20: `TLeCrKaPqcq3qZcdodJ8eUGJVzVbiWjMW1`
 3. Envoyez des USDT depuis votre portefeuille
 4. Soumettez le montant et le hash de transaction (optionnel)
-5. Attendez l'approbation de l'administrateur
+5. Attendez approbation de l'administrateur
 
 ### Investissements
 
