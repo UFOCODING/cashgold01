@@ -4,6 +4,29 @@
 
 CashGold est une plateforme d'investissement en ligne élégante avec un design or et noir. Elle permet aux utilisateurs d'investir et de gagner 5% de rendement quotidien sur leurs investissements.
 
+## 🏗️ Architecture
+
+- **Frontend**: React avec Vite/Craco
+- **Backend**: FastAPI (Python)
+- **Base de données**: PostgreSQL
+- **Déploiement**: Render (gratuit)
+
+## 📁 Structure du projet
+
+```
+CASHGOLD/
+├── frontend/          # Application React
+│   ├── src/
+│   ├── package.json
+│   └── render.yaml    # Configuration Render
+├── new_backend/       # API FastAPI
+│   ├── main.py
+│   ├── requirements.txt
+│   ├── create_admin.py
+│   └── render.yaml    # Configuration Render
+└── DEPLOYMENT.md      # Guide de déploiement
+```
+
 ## ✨ Fonctionnalités principales
 
 ### Pour les utilisateurs
@@ -32,33 +55,50 @@ CashGold est une plateforme d'investissement en ligne élégante avec un design 
 - ❓ **FAQ** - Questions fréquentes
 - 📧 **Contact** - Formulaire de contact
 
-## 🚀 Démarrage rapide
+## 🚀 Démarrage rapide (Local)
 
-### Créer un administrateur
+### Prérequis
+- Node.js 18+
+- Python 3.9+
+- PostgreSQL (ou utilisez SQLite pour le développement local)
+
+### Backend (Local avec SQLite)
 
 ```bash
-cd /app
-python3 scripts/create_admin.py
+cd new_backend
+pip install -r requirements.txt
+python main.py
+```
+
+### Frontend (Local)
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+### Créer un administrateur (Local)
+
+```bash
+cd new_backend
+python create_admin.py
 ```
 
 **Identifiants par défaut:**
 - Email: `admin@cashgold.com`
 - Mot de passe: `admin123`
 
-⚠️ **Important:** Changez le mot de passe après la première connexion !
+## 🌐 Déploiement sur Render
 
-### Calcul automatique des profits
+Pour déployer gratuitement sur Render, suivez le guide complet dans [DEPLOYMENT.md](DEPLOYMENT.md).
 
-Pour activer le calcul automatique des profits toutes les heures:
-
-```bash
-bash /app/scripts/setup_cron.sh
-```
-
-Ou manuellement:
-```bash
-python3 /app/scripts/calculate_profits.py
-```
+**Résumé rapide:**
+1. Créez un repository GitHub avec le code
+2. Déployez une base de données PostgreSQL sur Render
+3. Déployez le backend sur Render
+4. Créez l'administrateur via le shell Render
+5. Déployez le frontend sur Render
 
 ## 📱 Fonctionnement
 

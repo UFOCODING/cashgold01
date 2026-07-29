@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: cashgold-frontend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: REACT_APP_BACKEND_URL
+        value: https://cashgold-backend.onrender.com
+    plan: free
