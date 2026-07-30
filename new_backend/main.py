@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime, timedelta
-from passlib.context import CryptContext
+import bcrypt
 from jose import JWTError, jwt
 import uuid
 import os
@@ -30,7 +30,6 @@ security = HTTPBearer()
 SECRET_KEY = os.getenv("SECRET_KEY", "607cc72ea28d4c3275acc271d0f47e979418bb92013faf949a101a70ab5b0b00")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Database
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -201,7 +200,7 @@ async def register(user_data: UserRegister):
     # Create user
     user_id = str(uuid.uuid4())
     referral_code = generate_referral_code()
-    hashed_password = pwd_context.hash(user_data.password)
+    hashed_password = bcrypt.hashpw(user_data.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
     cursor.execute("""
         INSERT INTO users (id, email, username, hashed_password, referral_code, referred_by, balance)
@@ -241,7 +240,7 @@ async def login(user_data: UserLogin):
     user = cursor.fetchone()
     conn.close()
     
-    if not user or not pwd_context.verify(user_data.password, user["hashed_password"]):
+    if not user or not bcrypt.checkpw(user_data.password.encode('utf-8'), user["hashed_password"].encode('utf-8')):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
     if not user["is_active"]:
