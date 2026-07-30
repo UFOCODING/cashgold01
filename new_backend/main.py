@@ -315,7 +315,7 @@ async def create_deposit(deposit: DepositCreate, current_user: dict = Depends(ge
 
 @app.get("/api/deposits/wallet")
 async def get_deposit_wallet():
-    return {"wallet_address": "TLeCrKaPqcq3qZcdodJ8eUGJVzVbiWjMW1"}
+    return {"wallet_address": "TF348PVPBaqhGCFZSCCJEkDNVdtUHwaCyE"}
 
 # Withdrawal endpoints
 @app.get("/api/withdrawals/my")

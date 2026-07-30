@@ -160,4 +160,4 @@ Les profits sont calculés automatiquement toutes les heures si le cron est conf
 Formule: `profit = montant_investi * (5% / 24) * heures_écoulées`
 
 ### Adresse USDT TRC20
-L'adresse de dépôt est fixe: `TLeCrKaPqcq3qZcdodJ8eUGJVzVbiWjMW1`
+L'adresse de dépôt est fixe: `TF348PVPBaqhGCFZSCCJEkDNVdtUHwaCyE`
