@@ -1,11 +1,16 @@
-# CashGold - Guide de déploiement sur Render
+# CashGold - Guide de déploiement (Vercel + Supabase + Railway)
 
-Ce guide explique comment déployer CashGold (frontend + backend + base de données) sur Render, un hébergeur gratuit.
+Ce guide explique comment déployer CashGold gratuitement avec :
+- **Frontend**: Vercel (gratuit et illimité)
+- **Backend**: Railway (plan gratuit avec $5 crédit/mois)
+- **Base de données**: Supabase (PostgreSQL gratuit jusqu'à 500MB)
 
 ## Prérequis
 
 - Un compte GitHub
-- Un compte Render (https://render.com)
+- Un compte Vercel (https://vercel.com)
+- Un compte Railway (https://railway.app)
+- Un compte Supabase (https://supabase.com)
 - Le code du projet sur GitHub
 
 ## Structure du projet
@@ -15,81 +20,78 @@ CASHGOLD/
 ├── frontend/          # Application React
 │   ├── src/
 │   ├── package.json
-│   └── render.yaml    # Configuration Render pour le frontend
+│   └── vercel.json    # Configuration Vercel
 ├── new_backend/       # API FastAPI
 │   ├── main.py
 │   ├── requirements.txt
 │   ├── create_admin.py
-│   └── render.yaml    # Configuration Render pour le backend
+│   └── railway.toml   # Configuration Railway
 └── DEPLOYMENT.md      # Ce fichier
 ```
 
-## Étape 1: Préparer le repository GitHub
+## Étape 1: Créer la base de données Supabase
 
-1. Créez un nouveau repository sur GitHub
-2. Poussez tout le code du projet sur GitHub
-3. Assurez-vous que les fichiers `render.yaml` sont inclus
-
-## Étape 2: Déployer la base de données PostgreSQL
-
-1. Connectez-vous à Render
-2. Allez dans "Dashboard" → "New" → "PostgreSQL"
+1. Connectez-vous à Supabase (https://supabase.com)
+2. Cliquez sur "New Project"
 3. Remplissez le formulaire:
    - **Name**: cashgold-db
-   - **Database**: PostgreSQL
+   - **Database Password**: Choisissez un mot de passe fort (notez-le!)
    - **Region**: Choisissez la région la plus proche
-   - **Plan**: Free
-4. Cliquez sur "Create Database"
-5. Une fois créée, notez la "Internal Database URL" (vous en aurez besoin)
+4. Cliquez sur "Create new project"
+5. Attendez que le projet soit créé (environ 2 minutes)
+6. Allez dans "Settings" → "Database"
+7. Copiez la "Connection string" (format: `postgresql://postgres:[password]@[host]:5432/postgres`)
 
-## Étape 3: Déployer le backend
+## Étape 2: Déployer le backend sur Railway
 
-1. Allez dans "Dashboard" → "New" → "Web Service"
-2. Connectez votre compte GitHub
-3. Sélectionnez le repository CashGold
-4. Configurez:
-   - **Name**: cashgold-backend
-   - **Branch**: main
+1. Connectez-vous à Railway (https://railway.app)
+2. Cliquez sur "New Project" → "Deploy from GitHub repo"
+3. Connectez votre compte GitHub
+4. Sélectionnez le repository `UFOCODING/cashgold01`
+5. Configurez:
    - **Root Directory**: new_backend
-   - **Runtime**: Python 3
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-5. Dans "Environment Variables", ajoutez:
-   - `SECRET_KEY`: Générez une clé secrète aléatoire
-   - `DATABASE_URL`: Collez l'URL de la base de données PostgreSQL
-6. Cliquez sur "Create Web Service"
-7. Attendez que le déploiement soit terminé
-8. Notez l'URL du backend (ex: https://cashgold-backend.onrender.com)
+6. Dans "Variables", ajoutez:
+   - `SECRET_KEY`: Générez une clé secrète aléatoire (ex: `openssl rand -hex 32`)
+   - `DATABASE_URL`: Collez l'URL de connexion Supabase
+7. Cliquez sur "Deploy"
+8. Attendez que le déploiement soit terminé
+9. Une fois déployé, notez l'URL du backend (ex: https://cashgold-backend.railway.app)
 
-## Étape 4: Créer l'administrateur
+## Étape 3: Créer l'administrateur
 
-Une fois le backend déployé:
+Une fois le backend déployé sur Railway:
 
-1. Allez dans le service backend sur Render
-2. Cliquez sur "Shell" dans le menu
-3. Exécutez la commande:
+1. Allez dans le projet Railway
+2. Cliquez sur "Deployments"
+3. Cliquez sur le déploiement en cours
+4. Cliquez sur "View Logs"
+5. Cliquez sur "New Console" (ou utilisez le terminal Railway)
+6. Exécutez la commande:
    ```bash
    python create_admin.py
    ```
-4. Notez les identifiants admin (email: admin@cashgold.com, password: admin123)
+7. Notez les identifiants admin (email: admin@cashgold.com, password: admin123)
 
-## Étape 5: Déployer le frontend
+## Étape 4: Déployer le frontend sur Vercel
 
-1. Allez dans "Dashboard" → "New" → "Web Service"
-2. Sélectionnez le même repository GitHub
-3. Configurez:
-   - **Name**: cashgold-frontend
-   - **Branch**: main
+1. Connectez-vous à Vercel (https://vercel.com)
+2. Cliquez sur "Add New" → "Project"
+3. Connectez votre compte GitHub
+4. Sélectionnez le repository `UFOCODING/cashgold01`
+5. Configurez:
+   - **Framework Preset**: Create React App
    - **Root Directory**: frontend
-   - **Runtime**: Node
    - **Build Command**: `npm install && npm run build`
-   - **Start Command**: `npm start`
-4. Dans "Environment Variables", ajoutez:
-   - `REACT_APP_BACKEND_URL`: L'URL de votre backend (ex: https://cashgold-backend.onrender.com)
-5. Cliquez sur "Create Web Service"
-6. Attendez que le déploiement soit terminé
+   - **Output Directory**: build
+6. Dans "Environment Variables", ajoutez:
+   - `REACT_APP_BACKEND_URL`: L'URL de votre backend Railway (ex: https://cashgold-backend.railway.app)
+7. Cliquez sur "Deploy"
+8. Attendez que le déploiement soit terminé
+9. Notez l'URL du frontend (ex: https://cashgold.vercel.app)
 
-## Étape 6: Tester le déploiement
+## Étape 5: Tester le déploiement
 
 1. Ouvrez l'URL du frontend dans votre navigateur
 2. Testez l'inscription d'un nouvel utilisateur
@@ -98,12 +100,12 @@ Une fois le backend déployé:
 
 ## Variables d'environnement
 
-### Backend
-- `SECRET_KEY`: Clé secrète pour JWT (généré automatiquement sur Render)
-- `DATABASE_URL`: URL de connexion PostgreSQL
+### Backend (Railway)
+- `SECRET_KEY`: Clé secrète pour JWT
+- `DATABASE_URL`: URL de connexion Supabase PostgreSQL
 
-### Frontend
-- `REACT_APP_BACKEND_URL`: URL de l'API backend
+### Frontend (Vercel)
+- `REACT_APP_BACKEND_URL`: URL de l'API backend Railway
 
 ## Fonctionnalités
 
@@ -115,25 +117,36 @@ Une fois le backend déployé:
 - Parrainage (sans bonus)
 - Dashboard admin
 
-## Limitations du plan gratuit Render
+## Limitations des plans gratuits
 
-- **Backend**: 15 minutes d'inactivité avant mise en veille (réveil en ~30 secondes)
-- **Base de données**: 90 jours d'inactivité avant suppression
-- **Frontend**: Pas de mise en veille
+### Vercel (Frontend)
 - **Bandwidth**: 100 Go/mois
-- **Build hours**: 750 heures/mois
+- **Builds**: Illimité
+- **Pas de mise en veille**
+
+### Railway (Backend)
+- **Crédit**: $5/mois (suffisant pour petite app)
+- **Mise en veille**: Après 30 min d'inactivité (réveil en ~30 secondes)
+- **Bandwidth**: 1 Go/mois
+- **Build hours**: 500 heures/mois
+
+### Supabase (Base de données)
+- **Stockage**: 500 MB
+- **Bandwidth**: 2 Go/mois
+- **Connexions**: 500/mois
+- **Pas de mise en veille**
 
 ## Maintenance
 
 Pour mettre à jour l'application:
 1. Poussez les modifications sur GitHub
-2. Render déploiera automatiquement les changements
+2. Railway et Vercel déploieront automatiquement les changements
 3. Surveillez les logs en cas d'erreur
 
 ## Support
 
 En cas de problème:
-- Vérifiez les logs Render
+- Vérifiez les logs Railway et Vercel
 - Vérifiez les variables d'environnement
-- Assurez-vous que la base de données est accessible
+- Assurez-vous que la base de données Supabase est accessible
 - Vérifiez que l'URL du backend est correcte dans le frontend
