@@ -36,7 +36,16 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 def get_db():
-    conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    # Force IPv4 connection by modifying the connection string
+    # Replace IPv6 address with IPv4 or add connection parameters
+    db_url = DATABASE_URL
+    if db_url and "db.mybsggbhijvxnvswzrlb.supabase.co" in db_url:
+        # Force IPv4 by adding connection parameters
+        if "?" in db_url:
+            db_url += "&target_session_attrs=read-write"
+        else:
+            db_url += "?target_session_attrs=read-write"
+    conn = psycopg2.connect(db_url, cursor_factory=RealDictCursor, connect_timeout=10)
     return conn
 
 def init_db():

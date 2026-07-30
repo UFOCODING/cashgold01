@@ -1,13 +1,11 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from passlib.context import CryptContext
+import bcrypt
 import uuid
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -24,7 +22,9 @@ def create_admin():
     
     # Create admin user
     admin_id = str(uuid.uuid4())
-    hashed_password = pwd_context.hash("admin123")
+    # Hash password using bcrypt directly
+    password = "admin123"
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     referral_code = uuid.uuid4().hex[:8]
     
     cursor.execute("""
