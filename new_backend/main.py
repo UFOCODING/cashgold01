@@ -689,6 +689,40 @@ async def activate_user(user_id: str, current_admin: dict = Depends(get_current_
     
     return {"message": "User activated"}
 
+# Chatbot endpoint
+@app.post("/api/chatbot")
+async def chatbot(request: dict):
+    message = request.get("message", "").lower()
+    
+    # Simple rule-based responses
+    responses = {
+        "investissement": "Pour investir, connectez-vous à votre compte, allez dans l'onglet 'Investir', choisissez le montant et le plan VIP. Le minimum est $10.",
+        "invest": "Pour investir, connectez-vous à votre compte, allez dans l'onglet 'Investir', choisissez le montant et le plan VIP. Le minimum est $10.",
+        "dépôt": "Pour déposer, allez dans l'onglet 'Déposer', copiez l'adresse USDT TRC20, envoyez vos fonds depuis votre portefeuille, puis soumettez le montant.",
+        "déposer": "Pour déposer, allez dans l'onglet 'Déposer', copiez l'adresse USDT TRC20, envoyez vos fonds depuis votre portefeuille, puis soumettez le montant.",
+        "deposit": "To deposit, go to the 'Deposit' tab, copy the USDT TRC20 address, send your funds from your wallet, then submit the amount.",
+        "retrait": "Pour retirer, allez dans l'onglet 'Retirer', entrez le montant (minimum $10) et votre adresse USDT TRC20.",
+        "retirer": "Pour retirer, allez dans l'onglet 'Retirer', entrez le montant (minimum $10) et votre adresse USDT TRC20.",
+        "withdraw": "To withdraw, go to the 'Withdraw' tab, enter the amount (minimum $10) and your USDT TRC20 address.",
+        "vip": "Il y a 5 niveaux VIP : VIP 1 ($10-$99), VIP 2 ($100-$499), VIP 3 ($500-$999), VIP 4 ($1,000-$4,999), et VIP 5 ($5,000+). Tous offrent 5% par jour.",
+        "parrainage": "Partagez votre lien de parrainage unique. Lorsque vos filleuls s'inscrivent et effectuent un dépôt, vous recevez 5% de leur montant.",
+        "referral": "Share your unique referral link. When your referrals sign up and make a deposit, you receive 5% of their amount.",
+        "contact": "Pour nous contacter, envoyez un email à servicecashgold@gmail.com ou utilisez le formulaire de contact.",
+        "support": "Pour nous contacter, envoyez un email à servicecashgold@gmail.com ou utilisez le formulaire de contact.",
+        "help": "Comment puis-je vous aider ? Je peux répondre aux questions sur les investissements, dépôts, retraits, niveaux VIP et parrainage.",
+        "bonjour": "Bonjour ! Comment puis-je vous aider aujourd'hui ?",
+        "hello": "Hello! How can I help you today?",
+        "salut": "Salut ! Comment puis-je vous aider ?",
+    }
+    
+    # Check for keywords in message
+    for keyword, response in responses.items():
+        if keyword in message:
+            return {"response": response}
+    
+    # Default response
+    return {"response": "Je suis là pour vous aider ! Vous pouvez me poser des questions sur les investissements, dépôts, retraits, niveaux VIP ou parrainage. Pour une assistance personnalisée, contactez servicecashgold@gmail.com"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
