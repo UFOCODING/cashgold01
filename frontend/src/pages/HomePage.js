@@ -210,7 +210,7 @@ const HomePage = () => {
               <h4 className="font-bold mb-4 text-[#d4af37]">{t('nav.contact')}</h4>
               <div className="space-y-2">
                 <Link to="/contact" className="block text-gray-400 hover:text-[#d4af37] transition-colors">{t('footer.contactUs')}</Link>
-                <a href="mailto:support@cashgold.com" className="block text-gray-400 hover:text-[#d4af37] transition-colors">support@cashgold.com</a>
+                <a href="mailto:servicecashgold@gmail.com" className="block text-gray-400 hover:text-[#d4af37] transition-colors">servicecashgold@gmail.com</a>
               </div>
             </div>
           </div>
