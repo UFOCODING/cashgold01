@@ -38,7 +38,7 @@ export const pageTranslations = {
         { q: "Comment fonctionne le programme de parrainage ?", a: "Vous recevez un lien de parrainage unique. Partagez-le avec vos amis ! Lorsqu'ils s'inscrivent et effectuent un dépôt, vous recevez 5% de leur montant déposé en bonus immédiat." },
         { q: "Mes fonds sont-ils en sécurité ?", a: "Absolument. Nous utilisons un cryptage SSL de niveau bancaire et des protocoles de sécurité avancés pour protéger vos fonds et données personnelles." },
         { q: "Puis-je avoir plusieurs comptes ?", a: "Non, chaque utilisateur ne peut avoir qu'un seul compte sur la plateforme. Les comptes multiples sont interdits et peuvent entraîner une suspension." },
-        { q: "Comment contacter le support ?", a: "Notre équipe de support est disponible 24/7. Vous pouvez nous contacter via le formulaire de contact ou par email à support@cashgold.com. Nous répondons généralement dans les 24 heures." }
+        { q: "Comment contacter le support ?", a: "Notre équipe de support est disponible 24/7. Vous pouvez nous contacter via le formulaire de contact ou par email à servicecashgold@gmail.com. Nous répondons généralement dans les 24 heures." }
       ]
     },
     aboutPage: {
@@ -107,7 +107,7 @@ export const pageTranslations = {
         { q: "How does the referral program work?", a: "You get a unique referral link. Share it with your friends! When they sign up and make a deposit, you receive 5% of their deposit as an instant bonus." },
         { q: "Are my funds safe?", a: "Absolutely. We use bank-level SSL encryption and advanced security protocols to protect your funds and personal data." },
         { q: "Can I have multiple accounts?", a: "No, each user may have only one account on the platform. Multiple accounts are prohibited and may result in suspension." },
-        { q: "How do I contact support?", a: "Our support team is available 24/7. You can reach us via the contact form or by email at support@cashgold.com. We usually respond within 24 hours." }
+        { q: "How do I contact support?", a: "Our support team is available 24/7. You can reach us via the contact form or by email at servicecashgold@gmail.com. We usually respond within 24 hours." }
       ]
     },
     aboutPage: {
@@ -176,7 +176,7 @@ export const pageTranslations = {
         { q: "¿Cómo funciona el programa de referidos?", a: "Recibe un enlace de referido único. ¡Compártalo con sus amigos! Cuando se registren y realicen un depósito, recibe el 5% de su monto depositado como bono inmediato." },
         { q: "¿Están seguros mis fondos?", a: "Absolutamente. Utilizamos cifrado SSL de nivel bancario y protocolos de seguridad avanzados para proteger sus fondos y datos personales." },
         { q: "¿Puedo tener varias cuentas?", a: "No, cada usuario solo puede tener una cuenta en la plataforma. Las cuentas múltiples están prohibidas y pueden resultar en suspensión." },
-        { q: "¿Cómo contacto al soporte?", a: "Nuestro equipo de soporte está disponible 24/7. Puede contactarnos a través del formulario de contacto o por correo a support@cashgold.com. Generalmente respondemos en 24 horas." }
+        { q: "¿Cómo contacto al soporte?", a: "Nuestro equipo de soporte está disponible 24/7. Puede contactarnos a través del formulario de contacto o por correo a servicecashgold@gmail.com. Generalmente respondemos en 24 horas." }
       ]
     },
     aboutPage: {
@@ -245,7 +245,7 @@ export const pageTranslations = {
         { q: "كيف يعمل برنامج الإحالة؟", a: "تحصل على رابط إحالة فريد. شاركه مع أصدقائك! عندما يسجلون ويقومون بإيداع، تحصل على 5% من مبلغ إيداعهم كمكافأة فورية." },
         { q: "هل أموالي آمنة؟", a: "بالتأكيد. نستخدم تشفير SSL على مستوى البنوك وبروتوكولات أمان متقدمة لحماية أموالك وبياناتك الشخصية." },
         { q: "هل يمكنني امتلاك عدة حسابات؟", a: "لا، يمكن لكل مستخدم امتلاك حساب واحد فقط على المنصة. الحسابات المتعددة محظورة وقد تؤدي إلى التعليق." },
-        { q: "كيف أتواصل مع الدعم؟", a: "فريق الدعم لدينا متاح 24/7. يمكنك التواصل معنا عبر نموذج الاتصال أو بالبريد support@cashgold.com. عادة نرد خلال 24 ساعة." }
+        { q: "كيف أتواصل مع الدعم؟", a: "فريق الدعم لدينا متاح 24/7. يمكنك التواصل معنا عبر نموذج الاتصال أو بالبريد servicecashgold@gmail.com. عادة نرد خلال 24 ساعة." }
       ]
     },
     aboutPage: {
@@ -314,7 +314,7 @@ export const pageTranslations = {
         { q: "推荐计划如何运作？", a: "您会获得一个唯一的推荐链接。与您的朋友分享！当他们注册并存款时，您将获得其存款金额的5%作为即时奖金。" },
         { q: "我的资金安全吗？", a: "绝对安全。我们使用银行级SSL加密和先进的安全协议来保护您的资金和个人数据。" },
         { q: "我可以拥有多个账户吗？", a: "不可以，每个用户在平台上只能拥有一个账户。禁止多个账户，可能导致暂停。" },
-        { q: "如何联系客服？", a: "我们的支持团队24/7可用。您可以通过联系表格或发送邮件至support@cashgold.com联系我们。我们通常在24小时内回复。" }
+        { q: "如何联系客服？", a: "我们的支持团队24/7可用。您可以通过联系表格或发送邮件至servicecashgold@gmail.com联系我们。我们通常在24小时内回复。" }
       ]
     },
     aboutPage: {
@@ -383,7 +383,7 @@ export const pageTranslations = {
         { q: "Wie funktioniert das Empfehlungsprogramm?", a: "Sie erhalten einen einzigartigen Empfehlungslink. Teilen Sie ihn mit Ihren Freunden! Wenn sie sich registrieren und eine Einzahlung tätigen, erhalten Sie 5% ihres eingezahlten Betrags als sofortigen Bonus." },
         { q: "Sind meine Gelder sicher?", a: "Absolut. Wir verwenden SSL-Verschlüsselung auf Bankniveau und fortschrittliche Sicherheitsprotokolle, um Ihre Gelder und persönlichen Daten zu schützen." },
         { q: "Kann ich mehrere Konten haben?", a: "Nein, jeder Benutzer darf nur ein Konto auf der Plattform haben. Mehrere Konten sind verboten und können zu einer Sperrung führen." },
-        { q: "Wie kontaktiere ich den Support?", a: "Unser Support-Team ist rund um die Uhr verfügbar. Sie können uns über das Kontaktformular oder per E-Mail an support@cashgold.com erreichen. Wir antworten in der Regel innerhalb von 24 Stunden." }
+        { q: "Wie kontaktiere ich den Support?", a: "Unser Support-Team ist rund um die Uhr verfügbar. Sie können uns über das Kontaktformular oder per E-Mail an servicecashgold@gmail.com erreichen. Wir antworten in der Regel innerhalb von 24 Stunden." }
       ]
     },
     aboutPage: {

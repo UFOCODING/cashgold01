@@ -43,7 +43,7 @@ const AIChatbot = () => {
       console.error('Chatbot error:', error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: 'Désolé, une erreur s\'est produite. Veuillez réessayer ou contacter support@cashgold.com' 
+        content: 'Désolé, une erreur s\'est produite. Veuillez réessayer ou contacter servicecashgold@gmail.com' 
       }]);
     } finally {
       setLoading(false);

@@ -139,7 +139,7 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold mb-2">{t('contactPage.emailTitle')}</h3>
-                    <p className="text-gray-400">support@cashgold.com</p>
+                    <p className="text-gray-400">servicecashgold@gmail.com</p>
                     <p className="text-sm text-gray-500 mt-1">{t('contactPage.emailResponse')}</p>
                   </div>
                 </div>
