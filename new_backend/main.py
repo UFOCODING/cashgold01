@@ -693,13 +693,10 @@ async def activate_user(user_id: str, current_admin: dict = Depends(get_current_
 @app.post("/api/chatbot")
 async def chatbot(request: dict):
     message = request.get("message", "").lower()
+    language = request.get("language", "fr")  # Get language from frontend
     
-    # Detect language based on common words
-    french_words = ["investissement", "dépôt", "déposer", "retrait", "retirer", "parrainage", "contact", "bonjour", "salut", "comment", "pourquoi", "qu'est", "quel"]
-    is_french = any(word in message for word in french_words)
-    
-    # Simple rule-based responses
-    if is_french:
+    # Simple rule-based responses based on language
+    if language == "fr":
         responses = {
             "investissement": "Pour investir, connectez-vous à votre compte, allez dans l'onglet 'Investir', choisissez le montant et le plan VIP. Le minimum est $10.",
             "invest": "Pour investir, connectez-vous à votre compte, allez dans l'onglet 'Investir', choisissez le montant et le plan VIP. Le minimum est $10.",
@@ -716,7 +713,61 @@ async def chatbot(request: dict):
             "salut": "Salut ! Comment puis-je vous aider ?",
         }
         default_response = "Je suis là pour vous aider ! Vous pouvez me poser des questions sur les investissements, dépôts, retraits, niveaux VIP ou parrainage. Pour une assistance personnalisée, contactez servicecashgold@gmail.com"
-    else:
+    elif language == "es":
+        responses = {
+            "inversión": "Para invertir, inicie sesión en su cuenta, vaya a la pestaña 'Invertir', elija el monto y el plan VIP. El mínimo es $10.",
+            "invertir": "Para invertir, inicie sesión en su cuenta, vaya a la pestaña 'Invertir', elija el monto y el plan VIP. El mínimo es $10.",
+            "depósito": "Para depositar, vaya a la pestaña 'Depositar', copie la dirección USDT TRC20, envíe sus fondos desde su billetera, luego envíe el monto.",
+            "depositar": "Para depositar, vaya a la pestaña 'Depositar', copie la dirección USDT TRC20, envíe sus fondos desde su billetera, luego envíe el monto.",
+            "retiro": "Para retirar, vaya a la pestaña 'Retirar', ingrese el monto (mínimo $10) y su dirección USDT TRC20.",
+            "retirar": "Para retirar, vaya a la pestaña 'Retirar', ingrese el monto (mínimo $10) y su dirección USDT TRC20.",
+            "vip": "Hay 5 niveles VIP: VIP 1 ($10-$99), VIP 2 ($100-$499), VIP 3 ($500-$999), VIP 4 ($1,000-$4,999), y VIP 5 ($5,000+). Todos ofrecen 5% diario.",
+            "referido": "Comparta su enlace de referido único. Cuando sus referidos se registren y hagan un depósito, recibirá el 5% de su monto.",
+            "contacto": "Para contactarnos, envíe un email a servicecashgold@gmail.com o use el formulario de contacto.",
+            "ayuda": "¿Cómo puedo ayudarle? Puedo responder preguntas sobre inversiones, depósitos, retiros, niveles VIP y referidos.",
+            "hola": "¡Hola! ¿Cómo puedo ayudarle hoy?",
+        }
+        default_response = "Estoy aquí para ayudarle! Puede hacerme preguntas sobre inversiones, depósitos, retiros, niveles VIP y referidos. Para asistencia personalizada, contacte servicecashgold@gmail.com"
+    elif language == "ar":
+        responses = {
+            "استثمار": "للاستثمار، قم بتسجيل الدخول إلى حسابك، انتقل إلى علامة التبويب 'استثمار'، اختر المبلغ وخطة VIP. الحد الأدنى هو 10$.",
+            "إيداع": "للإيداع، انتقل إلى علامة التبويب 'إيداع'، انسخ عنوان USDT TRC20، أرسل أموالك من محفظتك، ثم أرسل المبلغ.",
+            "سحب": "للسحب، انتقل إلى علامة التبويب 'سحب'، أدخل المبلغ (الحد الأدنى 10$) وعنوان محفظتك USDT TRC20.",
+            "vip": "هناك 5 مستويات VIP: VIP 1 ($10-$99)، VIP 2 ($100-$499)، VIP 3 ($500-$999)، VIP 4 ($1,000-$4,999)، وVIP 5 ($5,000+). جميعها توفر 5% يومي.",
+            "إحالة": "شارك رابط الإحالة الخاص بك. عندما يسجل referrals ويودعون، ستتلقى 5% من مبلغهم.",
+            "اتصال": "للاتصال بنا، أرسل بريدًا إلكترونيًا إلى servicecashgold@gmail.com أو استخدم نموذج الاتصال.",
+            "مساعدة": "كيف يمكنني مساعدتك؟ يمكنني الإجابة على أسئلة حول الاستثمارات، الإيداعات، السحوبات، مستويات VIP والإحالات.",
+            "مرحبا": "مرحبا! كيف يمكنني مساعدتك اليوم؟",
+        }
+        default_response = "أنا هنا للمساعدة! يمكنك طرح أسئلة حول الاستثمارات، الإيداعات، السحوبات، مستويات VIP والإحالات. للمساعدة الشخصية، اتصل بـ servicecashgold@gmail.com"
+    elif language == "zh":
+        responses = {
+            "投资": "要投资，请登录您的账户，转到'投资'选项卡，选择金额和VIP计划。最低$10。",
+            "存款": "要存款，请转到'存款'选项卡，复制USDT TRC20地址，从您的钱包发送资金，然后提交金额。",
+            "取款": "要取款，请转到'取款'选项卡，输入金额（最低$10）和您的USDT TRC20地址。",
+            "vip": "有5个VIP级别：VIP 1（$10-$99），VIP 2（$100-$499），VIP 3（$500-$999），VIP 4（$1,000-$4,999），和VIP 5（$5,000+）。全部提供每日5%回报。",
+            "推荐": "分享您的唯一推荐链接。当您的推荐注册并存款时，您将获得其金额的5%。",
+            "联系": "要联系我们，请发送电子邮件至servicecashgold@gmail.com或使用联系表格。",
+            "帮助": "我怎么能帮您？我可以回答关于投资、存款、取款、VIP级别和推荐的问题。",
+            "你好": "你好！今天我能为您做些什么？",
+        }
+        default_response = "我在这里帮助您！您可以问我关于投资、存款、取款、VIP级别和推荐的问题。对于个性化帮助，请联系servicecashgold@gmail.com"
+    elif language == "de":
+        responses = {
+            "investition": "Um zu investieren, loggen Sie sich in Ihr Konto ein, gehen Sie zum Reiter 'Investieren', wählen Sie den Betrag und den VIP-Plan. Das Minimum ist $10.",
+            "investieren": "Um zu investieren, loggen Sie sich in Ihr Konto ein, gehen Sie zum Reiter 'Investieren', wählen Sie den Betrag und den VIP-Plan. Das Minimum ist $10.",
+            "einzahlung": "Um einzuzahlen, gehen Sie zum Reiter 'Einzahlen', kopieren Sie die USDT TRC20-Adresse, senden Sie Ihre Gelder aus Ihrer Wallet und übermitteln Sie dann den Betrag.",
+            "einzahlen": "Um einzuzahlen, gehen Sie zum Reiter 'Einzahlen', kopieren Sie die USDT TRC20-Adresse, senden Sie Ihre Gelder aus Ihrer Wallet und übermitteln Sie dann den Betrag.",
+            "auszahlung": "Um abzuheben, gehen Sie zum Reiter 'Abheben', geben Sie den Betrag (mindestens $10) und Ihre USDT TRC20-Wallet-Adresse ein.",
+            "abheben": "Um abzuheben, gehen Sie zum Reiter 'Abheben', geben Sie den Betrag (mindestens $10) und Ihre USDT TRC20-Wallet-Adresse ein.",
+            "vip": "Es gibt 5 VIP-Stufen: VIP 1 ($10-$99), VIP 2 ($100-$499), VIP 3 ($500-$999), VIP 4 ($1.000-$4.999) und VIP 5 ($5.000+). Alle bieten 5% tägliche Rendite.",
+            "empfehlung": "Teilen Sie Ihren einzigartigen Empfehlungslink. Wenn Ihre Empfehlungen sich registrieren und eine Einzahlung tätigen, erhalten Sie 5% ihres Betrags.",
+            "kontakt": "Um uns zu kontaktieren, senden Sie eine E-Mail an servicecashgold@gmail.com oder verwenden Sie das Kontaktformular.",
+            "hilfe": "Wie kann ich Ihnen helfen? Ich kann Fragen zu Investitionen, Einzahlungen, Auszahlungen, VIP-Stufen und Empfehlungen beantworten.",
+            "hallo": "Hallo! Wie kann ich Ihnen heute helfen?",
+        }
+        default_response = "Ich bin hier, um zu helfen! Sie können mir Fragen zu Investitionen, Einzahlungen, Auszahlungen, VIP-Stufen und Empfehlungen stellen. Für persönliche Hilfe kontaktieren Sie servicecashgold@gmail.com"
+    else:  # English (default)
         responses = {
             "invest": "To invest, log in to your account, go to the 'Invest' tab, choose the amount and VIP plan. The minimum is $10.",
             "investment": "To invest, log in to your account, go to the 'Invest' tab, choose the amount and VIP plan. The minimum is $10.",
@@ -737,7 +788,7 @@ async def chatbot(request: dict):
         if keyword in message:
             return {"response": response}
     
-    # Default response based on detected language
+    # Default response based on language
     return {"response": default_response}
 
 if __name__ == "__main__":

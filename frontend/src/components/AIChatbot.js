@@ -1,14 +1,30 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { useLanguage } from '../i18n/LanguageContext';
 import axios from 'axios';
 
 const AIChatbot = () => {
+  const { language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
+  
+  // Initial greeting based on language
+  const getInitialGreeting = () => {
+    const greetings = {
+      fr: '👋 Bonjour ! Je suis l\'assistant CashGold. Comment puis-je vous aider aujourd\'hui ?',
+      en: '👋 Hello! I am the CashGold assistant. How can I help you today?',
+      es: '👋 ¡Hola! Soy el asistente CashGold. ¿Cómo puedo ayudarte hoy?',
+      ar: '👋 مرحبا! أنا مساعد CashGold. كيف يمكنني مساعدتك اليوم؟',
+      zh: '👋 你好！我是 CashGold 助手。今天我能为您做些什么？',
+      de: '👋 Hallo! Ich bin der CashGold-Assistent. Wie kann ich Ihnen heute helfen?'
+    };
+    return greetings[language] || greetings.fr;
+  };
+  
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: '👋 Bonjour ! Je suis l\'assistant CashGold. Comment puis-je vous aider aujourd\'hui ?'
+      content: getInitialGreeting()
     }
   ]);
   const [input, setInput] = useState('');
@@ -34,6 +50,7 @@ const AIChatbot = () => {
     try {
       const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/chatbot`, {
         message: userMessage,
+        language: language,
         session_id: 'user-' + Date.now()
       });
 
