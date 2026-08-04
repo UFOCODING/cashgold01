@@ -8,23 +8,52 @@ const AIChatbot = () => {
   const { language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   
-  // Initial greeting based on language
-  const getInitialGreeting = () => {
-    const greetings = {
-      fr: '👋 Bonjour ! Je suis l\'assistant CashGold. Comment puis-je vous aider aujourd\'hui ?',
-      en: '👋 Hello! I am the CashGold assistant. How can I help you today?',
-      es: '👋 ¡Hola! Soy el asistente CashGold. ¿Cómo puedo ayudarte hoy?',
-      ar: '👋 مرحبا! أنا مساعد CashGold. كيف يمكنني مساعدتك اليوم؟',
-      zh: '👋 你好！我是 CashGold 助手。今天我能为您做些什么？',
-      de: '👋 Hallo! Ich bin der CashGold-Assistent. Wie kann ich Ihnen heute helfen?'
-    };
-    return greetings[language] || greetings.fr;
+  // Translations based on language
+  const translations = {
+    fr: {
+      title: "Assistant CashGold",
+      status: "En ligne",
+      placeholder: "Posez votre question...",
+      greeting: "👋 Bonjour ! Je suis l'assistant CashGold. Comment puis-je vous aider aujourd'hui ?"
+    },
+    en: {
+      title: "CashGold Assistant",
+      status: "Online",
+      placeholder: "Ask your question...",
+      greeting: "👋 Hello! I am the CashGold assistant. How can I help you today?"
+    },
+    es: {
+      title: "Asistente CashGold",
+      status: "En línea",
+      placeholder: "Haz tu pregunta...",
+      greeting: "👋 ¡Hola! Soy el asistente CashGold. ¿Cómo puedo ayudarte hoy?"
+    },
+    ar: {
+      title: "مساعد CashGold",
+      status: "متصل",
+      placeholder: "اطرح سؤالك...",
+      greeting: "👋 مرحبا! أنا مساعد CashGold. كيف يمكنني مساعدتك اليوم؟"
+    },
+    zh: {
+      title: "CashGold 助手",
+      status: "在线",
+      placeholder: "提出您的问题...",
+      greeting: "👋 你好！我是 CashGold 助手。今天我能为您做些什么？"
+    },
+    de: {
+      title: "CashGold-Assistent",
+      status: "Online",
+      placeholder: "Stellen Sie Ihre Frage...",
+      greeting: "👋 Hallo! Ich bin der CashGold-Assistent. Wie kann ich Ihnen heute helfen?"
+    }
   };
+  
+  const t = translations[language] || translations.fr;
   
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: getInitialGreeting()
+      content: t.greeting
     }
   ]);
   const [input, setInput] = useState('');
@@ -34,6 +63,16 @@ const AIChatbot = () => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  // Update greeting when language changes
+  useEffect(() => {
+    setMessages([
+      {
+        role: 'assistant',
+        content: t.greeting
+      }
+    ]);
+  }, [language, t.greeting]);
 
   useEffect(() => {
     scrollToBottom();
@@ -102,8 +141,8 @@ const AIChatbot = () => {
                 </svg>
               </div>
               <div>
-                <h3 className="font-bold text-black">Assistant CashGold</h3>
-                <p className="text-xs text-black/70">En ligne</p>
+                <h3 className="font-bold text-black">{t.title}</h3>
+                <p className="text-xs text-black/70">{t.status}</p>
               </div>
             </div>
             <button
@@ -155,7 +194,7 @@ const AIChatbot = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Posez votre question..."
+                placeholder={t.placeholder}
                 className="input-gold flex-1"
                 disabled={loading}
               />
