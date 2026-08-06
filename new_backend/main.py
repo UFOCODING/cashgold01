@@ -503,6 +503,8 @@ async def stop_investment(investment_id: str, current_user: dict = Depends(get_c
 # Update daily profits
 @app.post("/api/admin/update-profits")
 async def update_daily_profits(current_admin: dict = Depends(get_current_admin)):
+    from datetime import datetime, timedelta
+    
     conn = get_db()
     cursor = conn.cursor()
     
@@ -512,22 +514,33 @@ async def update_daily_profits(current_admin: dict = Depends(get_current_admin))
     
     total_profits_added = 0
     for investment in investments:
-        # Calculate daily profit (5% of investment amount)
-        daily_profit = investment["amount"] * (investment["daily_return_rate"] / 100)
+        # Calculate days since investment was created
+        created_at = investment["created_at"]
+        if isinstance(created_at, str):
+            created_at = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
         
-        # Update investment total_earned
-        cursor.execute(
-            "UPDATE investments SET total_earned = total_earned + %s WHERE id = %s",
-            (daily_profit, investment["id"])
-        )
+        days_since_creation = (datetime.now() - created_at).days
         
-        # Update user total_profits
-        cursor.execute(
-            "UPDATE users SET total_profits = total_profits + %s WHERE id = %s",
-            (daily_profit, investment["user_id"])
-        )
+        # Calculate expected total earnings based on days
+        expected_earnings = investment["amount"] * (investment["daily_return_rate"] / 100) * days_since_creation
         
-        total_profits_added += daily_profit
+        # Calculate how much to add (expected - already earned)
+        profit_to_add = expected_earnings - investment["total_earned"]
+        
+        if profit_to_add > 0:
+            # Update investment total_earned
+            cursor.execute(
+                "UPDATE investments SET total_earned = total_earned + %s WHERE id = %s",
+                (profit_to_add, investment["id"])
+            )
+            
+            # Update user total_profits
+            cursor.execute(
+                "UPDATE users SET total_profits = total_profits + %s WHERE id = %s",
+                (profit_to_add, investment["user_id"])
+            )
+            
+            total_profits_added += profit_to_add
     
     conn.commit()
     conn.close()
