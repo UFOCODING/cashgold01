@@ -157,6 +157,11 @@ def startup():
         replace_existing=True
     )
     print("Scheduler started - Daily profit update scheduled at 00:00")
+    
+    # Run profit update immediately on startup to catch any missing profits
+    import asyncio
+    asyncio.create_task(update_daily_profits_job())
+    print("Running initial profit update for existing investments...")
 
 @app.on_event("shutdown")
 def shutdown():
