@@ -13,10 +13,15 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from urllib.parse import urlparse
 import socket
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 load_dotenv()
 
 app = FastAPI(title="CashGold API")
+
+# Scheduler for automatic profit calculation
+scheduler = AsyncIOScheduler()
 
 # CORS
 app.add_middleware(
@@ -142,6 +147,21 @@ def init_db():
 @app.on_event("startup")
 def startup():
     init_db()
+    # Start the scheduler
+    scheduler.start()
+    # Schedule daily profit update at midnight (00:00)
+    scheduler.add_job(
+        update_daily_profits_job,
+        CronTrigger(hour=0, minute=0),
+        id='daily_profits',
+        replace_existing=True
+    )
+    print("Scheduler started - Daily profit update scheduled at 00:00")
+
+@app.on_event("shutdown")
+def shutdown():
+    scheduler.shutdown()
+    print("Scheduler stopped")
 
 # Models
 class UserRegister(BaseModel):
@@ -500,56 +520,60 @@ async def stop_investment(investment_id: str, current_user: dict = Depends(get_c
     
     return {"message": "Investment stopped"}
 
-# Update daily profits
-@app.post("/api/admin/update-profits")
-async def update_daily_profits(current_admin: dict = Depends(get_current_admin)):
+# Function to update daily profits (called by scheduler)
+async def update_daily_profits_job():
     from datetime import datetime, timedelta
     
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    # Get all active investments
-    cursor.execute("SELECT * FROM investments WHERE is_active = TRUE")
-    investments = cursor.fetchall()
-    
-    total_profits_added = 0
-    for investment in investments:
-        # Calculate days since investment was created
-        created_at = investment["created_at"]
-        if isinstance(created_at, str):
-            created_at = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
         
-        days_since_creation = (datetime.now() - created_at).days
+        # Get all active investments
+        cursor.execute("SELECT * FROM investments WHERE is_active = TRUE")
+        investments = cursor.fetchall()
         
-        # Calculate expected total earnings based on days
-        expected_earnings = investment["amount"] * (investment["daily_return_rate"] / 100) * days_since_creation
-        
-        # Calculate how much to add (expected - already earned)
-        profit_to_add = expected_earnings - investment["total_earned"]
-        
-        if profit_to_add > 0:
-            # Update investment total_earned
-            cursor.execute(
-                "UPDATE investments SET total_earned = total_earned + %s WHERE id = %s",
-                (profit_to_add, investment["id"])
-            )
+        total_profits_added = 0
+        for investment in investments:
+            # Calculate days since investment was created
+            created_at = investment["created_at"]
+            if isinstance(created_at, str):
+                created_at = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
             
-            # Update user total_profits
-            cursor.execute(
-                "UPDATE users SET total_profits = total_profits + %s WHERE id = %s",
-                (profit_to_add, investment["user_id"])
-            )
+            days_since_creation = (datetime.now() - created_at).days
             
-            total_profits_added += profit_to_add
-    
-    conn.commit()
-    conn.close()
-    
-    return {
-        "message": "Daily profits updated",
-        "investments_updated": len(investments),
-        "total_profits_added": round(total_profits_added, 2)
-    }
+            # Calculate expected total earnings based on days
+            expected_earnings = investment["amount"] * (investment["daily_return_rate"] / 100) * days_since_creation
+            
+            # Calculate how much to add (expected - already earned)
+            profit_to_add = expected_earnings - investment["total_earned"]
+            
+            if profit_to_add > 0:
+                # Update investment total_earned
+                cursor.execute(
+                    "UPDATE investments SET total_earned = total_earned + %s WHERE id = %s",
+                    (profit_to_add, investment["id"])
+                )
+                
+                # Update user total_profits
+                cursor.execute(
+                    "UPDATE users SET total_profits = total_profits + %s WHERE id = %s",
+                    (profit_to_add, investment["user_id"])
+                )
+                
+                total_profits_added += profit_to_add
+        
+        conn.commit()
+        conn.close()
+        
+        print(f"Daily profits updated: {len(investments)} investments, ${round(total_profits_added, 2)} added")
+    except Exception as e:
+        print(f"Error updating daily profits: {e}")
+
+# Update daily profits (admin endpoint)
+@app.post("/api/admin/update-profits")
+async def update_daily_profits(current_admin: dict = Depends(get_current_admin)):
+    await update_daily_profits_job()
+    return {"message": "Daily profits updated successfully"}
 
 # Referral endpoints
 @app.get("/api/referrals/my")
