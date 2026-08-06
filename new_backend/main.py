@@ -11,6 +11,8 @@ import os
 from dotenv import load_dotenv
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from urllib.parse import urlparse
+import socket
 
 load_dotenv()
 
@@ -35,16 +37,38 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 def get_db():
-    # Force IPv4 connection by modifying the connection string
-    # Replace IPv6 address with IPv4 or add connection parameters
     db_url = DATABASE_URL
-    if db_url and "db.mybsggbhijvxnvswzrlb.supabase.co" in db_url:
-        # Force IPv4 by adding connection parameters
-        if "?" in db_url:
-            db_url += "&target_session_attrs=read-write"
-        else:
-            db_url += "?target_session_attrs=read-write"
-    conn = psycopg2.connect(db_url, cursor_factory=RealDictCursor, connect_timeout=10)
+    if not db_url:
+        raise HTTPException(status_code=500, detail="DATABASE_URL not configured")
+    
+    # Parse connection string to force IPv4
+    try:
+        parsed = urlparse(db_url)
+        hostname = parsed.hostname
+        
+        # Force IPv4 resolution
+        try:
+            # Get IPv4 address only
+            ipv4_addresses = [addr[4][0] for addr in socket.getaddrinfo(hostname, parsed.port or 5432, socket.AF_INET, socket.SOCK_STREAM)]
+            if ipv4_addresses:
+                hostname = ipv4_addresses[0]
+        except:
+            pass  # Fallback to original hostname
+        
+        # Force IPv4 by using individual connection parameters
+        conn = psycopg2.connect(
+            host=hostname,
+            port=parsed.port or 5432,
+            database=parsed.path[1:],  # Remove leading /
+            user=parsed.username,
+            password=parsed.password,
+            cursor_factory=RealDictCursor,
+            connect_timeout=30,
+            client_encoding='utf8'
+        )
+    except Exception as e:
+        # Fallback to original connection string
+        conn = psycopg2.connect(db_url, cursor_factory=RealDictCursor, connect_timeout=30)
     return conn
 
 def init_db():
