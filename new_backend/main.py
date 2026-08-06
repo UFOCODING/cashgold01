@@ -486,14 +486,57 @@ async def stop_investment(investment_id: str, current_user: dict = Depends(get_c
     # Update investment
     cursor.execute("UPDATE investments SET is_active = FALSE WHERE id = %s", (investment_id,))
     
-    # Return to balance
-    cursor.execute("UPDATE users SET balance = balance + %s, invested_balance = invested_balance - %s WHERE id = %s", 
-                   (total_return, investment["amount"], current_user["id"]))
+    # Return to balance and update total_profits
+    cursor.execute("""
+        UPDATE users 
+        SET balance = balance + %s, 
+            invested_balance = invested_balance - %s,
+            total_profits = total_profits + %s 
+        WHERE id = %s
+    """, (total_return, investment["amount"], investment["total_earned"], current_user["id"]))
     
     conn.commit()
     conn.close()
     
     return {"message": "Investment stopped"}
+
+# Update daily profits
+@app.post("/api/admin/update-profits")
+async def update_daily_profits(current_admin: dict = Depends(get_current_admin)):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Get all active investments
+    cursor.execute("SELECT * FROM investments WHERE is_active = TRUE")
+    investments = cursor.fetchall()
+    
+    total_profits_added = 0
+    for investment in investments:
+        # Calculate daily profit (5% of investment amount)
+        daily_profit = investment["amount"] * (investment["daily_return_rate"] / 100)
+        
+        # Update investment total_earned
+        cursor.execute(
+            "UPDATE investments SET total_earned = total_earned + %s WHERE id = %s",
+            (daily_profit, investment["id"])
+        )
+        
+        # Update user total_profits
+        cursor.execute(
+            "UPDATE users SET total_profits = total_profits + %s WHERE id = %s",
+            (daily_profit, investment["user_id"])
+        )
+        
+        total_profits_added += daily_profit
+    
+    conn.commit()
+    conn.close()
+    
+    return {
+        "message": "Daily profits updated",
+        "investments_updated": len(investments),
+        "total_profits_added": round(total_profits_added, 2)
+    }
 
 # Referral endpoints
 @app.get("/api/referrals/my")
