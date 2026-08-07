@@ -140,6 +140,20 @@ def init_db():
         )
     """)
     
+    # Admin logs table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS admin_logs (
+            id TEXT PRIMARY KEY,
+            admin_id TEXT NOT NULL,
+            action TEXT NOT NULL,
+            target_type TEXT,
+            target_id TEXT,
+            details TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (admin_id) REFERENCES users (id)
+        )
+    """)
+    
     conn.commit()
     conn.close()
 
@@ -167,6 +181,18 @@ def startup():
 def shutdown():
     scheduler.shutdown()
     print("Scheduler stopped")
+
+# Helper function to log admin actions
+def log_admin_action(admin_id: str, action: str, target_type: str = None, target_id: str = None, details: str = None):
+    conn = get_db()
+    cursor = conn.cursor()
+    log_id = str(uuid.uuid4())
+    cursor.execute("""
+        INSERT INTO admin_logs (id, admin_id, action, target_type, target_id, details)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, (log_id, admin_id, action, target_type, target_id, details))
+    conn.commit()
+    conn.close()
 
 # Models
 class UserRegister(BaseModel):
@@ -578,6 +604,10 @@ async def update_daily_profits_job():
 @app.post("/api/admin/update-profits")
 async def update_daily_profits(current_admin: dict = Depends(get_current_admin)):
     await update_daily_profits_job()
+    
+    # Log admin action
+    log_admin_action(current_admin["id"], "update_profits", None, None, "Manual profit update triggered")
+    
     return {"message": "Daily profits updated successfully"}
 
 # Referral endpoints
@@ -685,6 +715,9 @@ async def approve_deposit(deposit_id: str, current_admin: dict = Depends(get_cur
     conn.commit()
     conn.close()
     
+    # Log admin action
+    log_admin_action(current_admin["id"], "approve_deposit", "deposit", deposit_id, f"Amount: ${deposit['amount']}")
+    
     return {"message": "Deposit approved"}
 
 @app.post("/api/admin/deposits/{deposit_id}/reject")
@@ -702,6 +735,9 @@ async def reject_deposit(deposit_id: str, current_admin: dict = Depends(get_curr
     cursor.execute("UPDATE deposits SET status = 'rejected' WHERE id = %s", (deposit_id,))
     conn.commit()
     conn.close()
+    
+    # Log admin action
+    log_admin_action(current_admin["id"], "reject_deposit", "deposit", deposit_id, f"Amount: ${deposit['amount']}")
     
     return {"message": "Deposit rejected"}
 
@@ -737,7 +773,7 @@ async def complete_withdrawal(withdrawal_id: str, current_admin: dict = Depends(
     conn = get_db()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT * FROM withdrawals WHERE id = ?", (withdrawal_id,))
+    cursor.execute("SELECT * FROM withdrawals WHERE id = %s", (withdrawal_id,))
     withdrawal = cursor.fetchone()
     
     if not withdrawal:
@@ -751,6 +787,9 @@ async def complete_withdrawal(withdrawal_id: str, current_admin: dict = Depends(
     cursor.execute("UPDATE withdrawals SET status = 'completed' WHERE id = %s", (withdrawal_id,))
     conn.commit()
     conn.close()
+    
+    # Log admin action
+    log_admin_action(current_admin["id"], "complete_withdrawal", "withdrawal", withdrawal_id, f"Amount: ${withdrawal['amount']}")
     
     return {"message": "Withdrawal completed"}
 
@@ -778,15 +817,208 @@ async def get_admin_users(current_admin: dict = Depends(get_current_admin)):
         for u in users
     ]
 
-@app.post("/api/admin/users/{user_id}/suspend")
-async def suspend_user(user_id: str, current_admin: dict = Depends(get_current_admin)):
+@app.get("/api/admin/logs")
+async def get_admin_logs(current_admin: dict = Depends(get_current_admin)):
     conn = get_db()
     cursor = conn.cursor()
+    cursor.execute("""
+        SELECT al.*, u.username as admin_username 
+        FROM admin_logs al 
+        JOIN users u ON al.admin_id = u.id 
+        ORDER BY al.created_at DESC 
+        LIMIT 100
+    """)
+    logs = cursor.fetchall()
+    conn.close()
+    
+    return [
+        {
+            "id": log["id"],
+            "admin_id": log["admin_id"],
+            "admin_username": log["admin_username"],
+            "action": log["action"],
+            "target_type": log["target_type"],
+            "target_id": log["target_id"],
+            "details": log["details"],
+            "created_at": log["created_at"]
+        }
+        for log in logs
+    ]
+
+@app.post("/api/admin/users/{user_id}/ban")
+async def ban_user(user_id: str, current_admin: dict = Depends(get_current_admin)):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+    
+    if not user:
+        conn.close()
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user["is_admin"]:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Cannot ban admin user")
+    
     cursor.execute("UPDATE users SET is_active = FALSE WHERE id = %s", (user_id,))
     conn.commit()
     conn.close()
     
-    return {"message": "User suspended"}
+    # Log admin action
+    log_admin_action(current_admin["id"], "ban_user", "user", user_id, f"User: {user['username']}")
+    
+    return {"message": "User banned"}
+
+@app.post("/api/admin/users/{user_id}/unban")
+async def unban_user(user_id: str, current_admin: dict = Depends(get_current_admin)):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+    
+    if not user:
+        conn.close()
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    cursor.execute("UPDATE users SET is_active = TRUE WHERE id = %s", (user_id,))
+    conn.commit()
+    conn.close()
+    
+    # Log admin action
+    log_admin_action(current_admin["id"], "unban_user", "user", user_id, f"User: {user['username']}")
+    
+    return {"message": "User unbanned"}
+
+@app.post("/api/admin/users/{user_id}/balance")
+async def update_user_balance(user_id: str, amount: float, current_admin: dict = Depends(get_current_admin)):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+    
+    if not user:
+        conn.close()
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    cursor.execute("UPDATE users SET balance = balance + %s WHERE id = %s", (amount, user_id))
+    conn.commit()
+    conn.close()
+    
+    # Log admin action
+    log_admin_action(current_admin["id"], "update_balance", "user", user_id, f"User: {user['username']}, Amount: ${amount}")
+    
+    return {"message": "User balance updated"}
+
+@app.get("/api/admin/investments")
+async def get_admin_investments(current_admin: dict = Depends(get_current_admin)):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT i.*, u.username, u.email 
+        FROM investments i 
+        JOIN users u ON i.user_id = u.id 
+        ORDER BY i.created_at DESC
+    """)
+    investments = cursor.fetchall()
+    conn.close()
+    
+    return [
+        {
+            "id": inv["id"],
+            "user_id": inv["user_id"],
+            "username": inv["username"],
+            "email": inv["email"],
+            "amount": inv["amount"],
+            "vip_level": inv["vip_level"],
+            "daily_return_rate": inv["daily_return_rate"],
+            "total_earned": inv["total_earned"],
+            "is_active": bool(inv["is_active"]),
+            "created_at": inv["created_at"]
+        }
+        for inv in investments
+    ]
+
+@app.post("/api/admin/investments/{investment_id}/stop")
+async def admin_stop_investment(investment_id: str, current_admin: dict = Depends(get_current_admin)):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM investments WHERE id = %s", (investment_id,))
+    investment = cursor.fetchone()
+    
+    if not investment:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Investment not found")
+    
+    if not investment["is_active"]:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Investment already stopped")
+    
+    # Calculate total (principal + earnings)
+    total_return = investment["amount"] + investment["total_earned"]
+    
+    # Update investment
+    cursor.execute("UPDATE investments SET is_active = FALSE WHERE id = %s", (investment_id,))
+    
+    # Return to balance and update total_profits
+    cursor.execute("""
+        UPDATE users 
+        SET balance = balance + %s, 
+            invested_balance = invested_balance - %s,
+            total_profits = total_profits + %s 
+        WHERE id = %s
+    """, (total_return, investment["amount"], investment["total_earned"], investment["user_id"]))
+    
+    conn.commit()
+    conn.close()
+    
+    # Log admin action
+    log_admin_action(current_admin["id"], "stop_investment", "investment", investment_id, f"User ID: {investment['user_id']}, Amount: ${investment['amount']}")
+    
+    return {"message": "Investment stopped"}
+
+@app.get("/api/admin/financial-stats")
+async def get_financial_stats(current_admin: dict = Depends(get_current_admin)):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Total invested
+    cursor.execute("SELECT SUM(amount) FROM investments WHERE is_active = TRUE")
+    total_invested = cursor.fetchone()["sum"] or 0
+    
+    # Total profits distributed
+    cursor.execute("SELECT SUM(total_earned) FROM investments")
+    total_profits_distributed = cursor.fetchone()["sum"] or 0
+    
+    # Total active investments
+    cursor.execute("SELECT COUNT(*) FROM investments WHERE is_active = TRUE")
+    active_investments = cursor.fetchone()["count"]
+    
+    # Total users by VIP level
+    cursor.execute("SELECT vip_level, COUNT(*) FROM users GROUP BY vip_level")
+    users_by_vip = {row["vip_level"]: row["count"] for row in cursor.fetchall()}
+    
+    # Total deposits by status
+    cursor.execute("SELECT status, COUNT(*), SUM(amount) FROM deposits GROUP BY status")
+    deposits_by_status = {row["status"]: {"count": row["count"], "amount": row["sum"] or 0} for row in cursor.fetchall()}
+    
+    # Total withdrawals by status
+    cursor.execute("SELECT status, COUNT(*), SUM(amount) FROM withdrawals GROUP BY status")
+    withdrawals_by_status = {row["status"]: {"count": row["count"], "amount": row["sum"] or 0} for row in cursor.fetchall()}
+    
+    conn.close()
+    
+    return {
+        "total_invested": total_invested,
+        "total_profits_distributed": total_profits_distributed,
+        "active_investments": active_investments,
+        "users_by_vip": users_by_vip,
+        "deposits_by_status": deposits_by_status,
+        "withdrawals_by_status": withdrawals_by_status
+    }
 
 @app.post("/api/admin/users/{user_id}/activate")
 async def activate_user(user_id: str, current_admin: dict = Depends(get_current_admin)):
