@@ -20,6 +20,7 @@ const AdminDashboard = () => {
   const [investments, setInvestments] = useState([]);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -199,16 +200,47 @@ const AdminDashboard = () => {
           </Link>
           <div className="flex items-center space-x-4">
             <LanguageSelector />
-            <Link to="/dashboard">
-              <Button data-testid="user-dashboard-btn" variant="outline" className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black">
-                {t('nav.userDashboard')}
+            <div className="hidden md:flex items-center space-x-4">
+              <Link to="/dashboard">
+                <Button data-testid="user-dashboard-btn" variant="outline" className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black">
+                  {t('nav.userDashboard')}
+                </Button>
+              </Link>
+              <Button data-testid="admin-logout-btn" onClick={handleLogout} variant="outline" className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black">
+                {t('nav.logout')}
               </Button>
-            </Link>
-            <Button data-testid="admin-logout-btn" onClick={handleLogout} variant="outline" className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black">
-              {t('nav.logout')}
-            </Button>
+            </div>
+            {/* Mobile Menu Button */}
+            <button 
+              className="md:hidden text-gray-300 hover:text-[#d4af37]"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
           </div>
         </div>
+        
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden glass-light border-t border-[#d4af37]/20">
+            <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
+              <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="outline" className="w-full border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black">
+                  {t('nav.userDashboard')}
+                </Button>
+              </Link>
+              <Button onClick={() => { handleLogout(); setMobileMenuOpen(false); }} variant="outline" className="w-full border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black">
+                {t('nav.logout')}
+              </Button>
+            </div>
+          </div>
+        )}
       </nav>
 
       <div className="container mx-auto px-4 py-8">

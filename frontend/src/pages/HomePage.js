@@ -7,6 +7,7 @@ import LanguageSelector from '../components/LanguageSelector';
 
 const HomePage = () => {
   const { t } = useLanguage();
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   
   return (
     <div className="min-h-screen bg-black">
@@ -19,26 +20,68 @@ const HomePage = () => {
             </div>
             <span className="text-2xl font-bold gold-text">CashGold</span>
           </Link>
+          
+          {/* Desktop Navigation */}
           <div className="hidden md:flex space-x-8">
             <Link to="/" className="text-gray-300 hover:text-[#d4af37] transition-colors">{t('nav.home')}</Link>
             <Link to="/about" className="text-gray-300 hover:text-[#d4af37] transition-colors">{t('nav.about')}</Link>
             <Link to="/faq" className="text-gray-300 hover:text-[#d4af37] transition-colors">{t('nav.faq')}</Link>
             <Link to="/contact" className="text-gray-300 hover:text-[#d4af37] transition-colors">{t('nav.contact')}</Link>
           </div>
+          
           <div className="flex space-x-3 items-center">
             <LanguageSelector />
-            <Link to="/login">
-              <Button data-testid="login-btn" variant="outline" className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black">
-                {t('nav.login')}
-              </Button>
-            </Link>
-            <Link to="/register">
-              <Button data-testid="register-btn" className="btn-gold">
-                {t('nav.register')}
-              </Button>
-            </Link>
+            <div className="hidden md:flex space-x-3">
+              <Link to="/login">
+                <Button data-testid="login-btn" variant="outline" className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black">
+                  {t('nav.login')}
+                </Button>
+              </Link>
+              <Link to="/register">
+                <Button data-testid="register-btn" className="btn-gold">
+                  {t('nav.register')}
+                </Button>
+              </Link>
+            </div>
+            {/* Mobile Menu Button */}
+            <button 
+              className="md:hidden text-gray-300 hover:text-[#d4af37]"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
           </div>
         </div>
+        
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden glass-light border-t border-[#d4af37]/20">
+            <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
+              <Link to="/" className="text-gray-300 hover:text-[#d4af37] transition-colors" onClick={() => setMobileMenuOpen(false)}>{t('nav.home')}</Link>
+              <Link to="/about" className="text-gray-300 hover:text-[#d4af37] transition-colors" onClick={() => setMobileMenuOpen(false)}>{t('nav.about')}</Link>
+              <Link to="/faq" className="text-gray-300 hover:text-[#d4af37] transition-colors" onClick={() => setMobileMenuOpen(false)}>{t('nav.faq')}</Link>
+              <Link to="/contact" className="text-gray-300 hover:text-[#d4af37] transition-colors" onClick={() => setMobileMenuOpen(false)}>{t('nav.contact')}</Link>
+              <div className="flex flex-col space-y-3 pt-4 border-t border-[#d4af37]/20">
+                <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="outline" className="w-full border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black">
+                    {t('nav.login')}
+                  </Button>
+                </Link>
+                <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
+                  <Button className="w-full btn-gold">
+                    {t('nav.register')}
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
