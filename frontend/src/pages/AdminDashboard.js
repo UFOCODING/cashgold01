@@ -13,9 +13,12 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [stats, setStats] = useState(null);
+  const [financialStats, setFinancialStats] = useState(null);
   const [deposits, setDeposits] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
   const [users, setUsers] = useState([]);
+  const [investments, setInvestments] = useState([]);
+  const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,17 +27,23 @@ const AdminDashboard = () => {
 
   const loadData = async () => {
     try {
-      const [statsRes, depositsRes, withdrawalsRes, usersRes] = await Promise.all([
+      const [statsRes, financialStatsRes, depositsRes, withdrawalsRes, usersRes, investmentsRes, logsRes] = await Promise.all([
         axios.get(`${API}/admin/stats`),
+        axios.get(`${API}/admin/financial-stats`),
         axios.get(`${API}/admin/deposits`),
         axios.get(`${API}/admin/withdrawals`),
-        axios.get(`${API}/admin/users`)
+        axios.get(`${API}/admin/users`),
+        axios.get(`${API}/admin/investments`),
+        axios.get(`${API}/admin/logs`)
       ]);
 
       setStats(statsRes.data);
+      setFinancialStats(financialStatsRes.data);
       setDeposits(depositsRes.data);
       setWithdrawals(withdrawalsRes.data);
       setUsers(usersRes.data);
+      setInvestments(investmentsRes.data);
+      setLogs(logsRes.data);
     } catch (error) {
       console.error('Error loading admin data:', error);
       if (error.response?.status === 403) {
@@ -84,6 +93,55 @@ const AdminDashboard = () => {
     try {
       await axios.post(`${API}/admin/users/${userId}/suspend`);
       toast.success(t('toast.userSuspended'));
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || t('toast.error'));
+    }
+  };
+
+  const handleBanUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to ban this user?')) return;
+
+    try {
+      await axios.post(`${API}/admin/users/${userId}/ban`);
+      toast.success('User banned successfully');
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || t('toast.error'));
+    }
+  };
+
+  const handleUnbanUser = async (userId) => {
+    try {
+      await axios.post(`${API}/admin/users/${userId}/unban`);
+      toast.success('User unbanned successfully');
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || t('toast.error'));
+    }
+  };
+
+  const handleUpdateBalance = async (userId, amount) => {
+    const amountValue = prompt('Enter amount to add (positive) or remove (negative):');
+    if (amountValue === null) return;
+    
+    try {
+      await axios.post(`${API}/admin/users/${userId}/balance`, null, {
+        params: { amount: parseFloat(amountValue) }
+      });
+      toast.success('User balance updated successfully');
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || t('toast.error'));
+    }
+  };
+
+  const handleStopInvestment = async (investmentId) => {
+    if (!window.confirm('Are you sure you want to stop this investment?')) return;
+
+    try {
+      await axios.post(`${API}/admin/investments/${investmentId}/stop`);
+      toast.success('Investment stopped successfully');
       loadData();
     } catch (error) {
       toast.error(error.response?.data?.detail || t('toast.error'));
@@ -167,28 +225,28 @@ const AdminDashboard = () => {
 
           <Card className="glass border-[#d4af37]/30">
             <CardHeader>
-              <CardTitle className="text-gray-400 text-sm">{t('admin.totalDeposits')}</CardTitle>
+              <CardTitle className="text-gray-400 text-sm">Total Invested</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-green-400" data-testid="total-deposits">${stats?.total_deposits?.toFixed(2) || '0.00'}</p>
+              <p className="text-3xl font-bold text-blue-400">${financialStats?.total_invested?.toFixed(2) || '0.00'}</p>
             </CardContent>
           </Card>
 
           <Card className="glass border-[#d4af37]/30">
             <CardHeader>
-              <CardTitle className="text-gray-400 text-sm">{t('admin.totalWithdrawals')}</CardTitle>
+              <CardTitle className="text-gray-400 text-sm">Total Profits</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-red-400" data-testid="total-withdrawals">${stats?.total_withdrawals?.toFixed(2) || '0.00'}</p>
+              <p className="text-3xl font-bold text-green-400">${financialStats?.total_profits_distributed?.toFixed(2) || '0.00'}</p>
             </CardContent>
           </Card>
 
           <Card className="glass border-[#d4af37]/30">
             <CardHeader>
-              <CardTitle className="text-gray-400 text-sm">{t('admin.platformProfit')}</CardTitle>
+              <CardTitle className="text-gray-400 text-sm">Active Investments</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold gold-text" data-testid="platform-profit">${stats?.platform_profit?.toFixed(2) || '0.00'}</p>
+              <p className="text-3xl font-bold gold-text">{financialStats?.active_investments || 0}</p>
             </CardContent>
           </Card>
         </div>
@@ -204,6 +262,12 @@ const AdminDashboard = () => {
             </TabsTrigger>
             <TabsTrigger data-testid="admin-tab-users" value="users" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">
               {t('admin.tabs.users')} ({users.length})
+            </TabsTrigger>
+            <TabsTrigger value="investments" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">
+              Investments ({investments.filter(i => i.is_active).length})
+            </TabsTrigger>
+            <TabsTrigger value="logs" className="data-[state=active]:bg-[#d4af37] data-[state=active]:text-black">
+              Activity Logs ({logs.length})
             </TabsTrigger>
           </TabsList>
 
@@ -365,24 +429,32 @@ const AdminDashboard = () => {
                               </div>
                             </div>
                           </div>
-                          <div className="ml-4">
+                          <div className="ml-4 flex flex-col space-y-2">
                             {user.is_active ? (
-                              <Button
-                                data-testid={`suspend-user-${user.id}`}
-                                onClick={() => handleSuspendUser(user.id)}
-                                variant="destructive"
-                                size="sm"
-                              >
-                                {t('admin.users.suspend')}
-                              </Button>
+                              <>
+                                <Button
+                                  onClick={() => handleBanUser(user.id)}
+                                  variant="destructive"
+                                  size="sm"
+                                >
+                                  Ban
+                                </Button>
+                                <Button
+                                  onClick={() => handleUpdateBalance(user.id)}
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-[#d4af37] text-[#d4af37]"
+                                >
+                                  Update Balance
+                                </Button>
+                              </>
                             ) : (
                               <Button
-                                data-testid={`activate-user-${user.id}`}
-                                onClick={() => handleActivateUser(user.id)}
+                                onClick={() => handleUnbanUser(user.id)}
                                 className="btn-gold"
                                 size="sm"
                               >
-                                {t('admin.users.activate')}
+                                Unban
                               </Button>
                             )}
                           </div>
@@ -393,6 +465,101 @@ const AdminDashboard = () => {
                           }`}>
                             {user.is_active ? t('admin.users.active') : t('admin.users.suspended')}
                           </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Investments Tab */}
+          <TabsContent value="investments">
+            <Card className="glass border-[#d4af37]/30">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold">Investments</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {investments.length === 0 ? (
+                  <p className="text-gray-400 text-center py-8">No investments found</p>
+                ) : (
+                  <div className="space-y-4">
+                    {investments.map((inv) => (
+                      <div key={inv.id} className="glass-light rounded-xl p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <p className="font-bold text-lg">${inv.amount.toFixed(2)}</p>
+                            <p className="text-sm text-gray-400">User: {inv.username}</p>
+                            <p className="text-xs text-gray-500">{inv.email}</p>
+                            <p className="text-xs text-gray-500">{new Date(inv.created_at).toLocaleString()}</p>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-sm ${
+                            inv.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                          }`}>
+                            {inv.is_active ? 'Active' : 'Stopped'}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 text-sm mb-3">
+                          <div>
+                            <span className="text-gray-500">VIP Level: </span>
+                            <span className="gold-text">{inv.vip_level}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Daily Rate: </span>
+                            <span className="text-white">{inv.daily_return_rate}%</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Total Earned: </span>
+                            <span className="text-green-400">${inv.total_earned.toFixed(2)}</span>
+                          </div>
+                        </div>
+                        {inv.is_active && (
+                          <Button
+                            onClick={() => handleStopInvestment(inv.id)}
+                            variant="destructive"
+                            className="w-full"
+                          >
+                            Stop Investment
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Activity Logs Tab */}
+          <TabsContent value="logs">
+            <Card className="glass border-[#d4af37]/30">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold">Activity Logs</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {logs.length === 0 ? (
+                  <p className="text-gray-400 text-center py-8">No activity logs found</p>
+                ) : (
+                  <div className="space-y-3">
+                    {logs.map((log) => (
+                      <div key={log.id} className="glass-light rounded-lg p-3">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <p className="font-semibold text-sm">{log.action}</p>
+                            <p className="text-xs text-gray-400">Admin: {log.admin_username}</p>
+                            {log.target_type && (
+                              <p className="text-xs text-gray-500">
+                                Target: {log.target_type} {log.target_id}
+                              </p>
+                            )}
+                            {log.details && (
+                              <p className="text-xs text-gray-500 mt-1">{log.details}</p>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500">
+                            {new Date(log.created_at).toLocaleString()}
+                          </p>
                         </div>
                       </div>
                     ))}
