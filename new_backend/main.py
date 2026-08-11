@@ -207,7 +207,7 @@ class UserLogin(BaseModel):
 
 class DepositCreate(BaseModel):
     amount: float
-    tx_hash: Optional[str] = None
+    tx_hash: str
 
 class WithdrawalCreate(BaseModel):
     amount: float
@@ -390,7 +390,7 @@ async def create_deposit(deposit: DepositCreate, current_user: dict = Depends(ge
 
 @app.get("/api/deposits/wallet")
 async def get_deposit_wallet():
-    return {"wallet_address": "TF348PVPBaqhGCFZSCCJEkDNVdtUHwaCyE"}
+    return {"wallet_address": "TRqpzQsfTKH36ZUsWR5Dwj7mbBKYapfd1P"}
 
 # Withdrawal endpoints
 @app.get("/api/withdrawals/my")
