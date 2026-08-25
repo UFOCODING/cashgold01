@@ -247,7 +247,7 @@ const DashboardPage = () => {
           <TabsContent value="invest" className="space-y-6">
             <Card className="glass border-[#d4af37]/30">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">{t('dashboard.invest.title')}</CardTitle>
+                <CardTitle className="text-2xl font-bold text-white">{t('dashboard.invest.title')}</CardTitle>
                 <CardDescription className="text-gray-400">{t('dashboard.invest.subtitle')}</CardDescription>
               </CardHeader>
               <CardContent>
@@ -274,7 +274,7 @@ const DashboardPage = () => {
             {/* Active Investments */}
             <Card className="glass border-[#d4af37]/30">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">{t('dashboard.invest.active')}</CardTitle>
+                <CardTitle className="text-2xl font-bold text-white">{t('dashboard.invest.active')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {investments.filter(inv => inv.is_active).length === 0 ? (
@@ -284,7 +284,7 @@ const DashboardPage = () => {
                     {investments.filter(inv => inv.is_active).map((inv) => (
                       <div key={inv.id} data-testid={`investment-${inv.id}`} className="glass-light rounded-xl p-4 flex justify-between items-center">
                         <div>
-                          <p className="text-lg font-bold">${inv.amount.toFixed(2)}</p>
+                          <p className="text-lg font-bold text-white">${inv.amount.toFixed(2)}</p>
                           <p className="text-sm text-gray-400">VIP {inv.vip_level} - {inv.daily_return_rate}%/{t('common.day')}</p>
                           <p className="text-sm text-green-400">{t('dashboard.invest.earned')}: ${inv.total_earned.toFixed(2)}</p>
                         </div>
