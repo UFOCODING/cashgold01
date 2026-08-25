@@ -410,7 +410,7 @@ const DashboardPage = () => {
           <TabsContent value="history" className="space-y-6">
             <Card className="glass border-[#d4af37]/30">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">{t('dashboard.deposit.history')}</CardTitle>
+                <CardTitle className="text-2xl font-bold text-white">{t('dashboard.deposit.history')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {deposits.length === 0 ? (
@@ -439,7 +439,7 @@ const DashboardPage = () => {
 
             <Card className="glass border-[#d4af37]/30">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">{t('dashboard.withdraw.history')}</CardTitle>
+                <CardTitle className="text-2xl font-bold text-white">{t('dashboard.withdraw.history')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {withdrawals.length === 0 ? (
@@ -472,7 +472,7 @@ const DashboardPage = () => {
           <TabsContent value="referral" className="space-y-6">
             <Card className="glass border-[#d4af37]/30">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">{t('dashboard.referral.title')}</CardTitle>
+                <CardTitle className="text-2xl font-bold text-white">{t('dashboard.referral.title')}</CardTitle>
                 <CardDescription className="text-gray-400">{t('dashboard.referral.subtitle')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -497,7 +497,7 @@ const DashboardPage = () => {
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-bold mb-4">{t('dashboard.referral.myReferrals')} ({referrals.length})</h3>
+                  <h3 className="text-xl font-bold text-white mb-4">{t('dashboard.referral.myReferrals')} ({referrals.length})</h3>
                   {referrals.length === 0 ? (
                     <p className="text-gray-400 text-center py-8">{t('dashboard.referral.noReferrals')}</p>
                   ) : (
